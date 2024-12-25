@@ -10,9 +10,12 @@ class TopBar(QWidget):
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
 
+        self.setObjectName("topbar")
         #set constraints
-        self.setMinimumHeight(80)
+        self.setMinimumHeight(100)
         self.setMaximumHeight(100)
+
+        self.layout.setContentsMargins(0,0,0,0)
 
         self.heading_banner()
         self.settings_btn()
@@ -20,8 +23,9 @@ class TopBar(QWidget):
         self.layout.addWidget(self.settings_btn_widget, alignment=Qt.AlignRight)
 
         # set stylesheet
+        
         self.setStyleSheet(load_stylesheet('topbar_styles.qss'))
-
+        # self.setStyleSheet("background-color: blue;")
 
     def heading_banner(self):
         self.heading_banner = QWidget()
@@ -43,7 +47,7 @@ class TopBar(QWidget):
         self.heading.setFont(self.heading_font)
         self.version_label.setFont(self.version_label_font)
 
-        
+        self.heading_texts_layout.setSpacing(0)
         self.heading_texts_layout.addWidget(self.heading, alignment=Qt.AlignTop)
         self.heading_texts_layout.addWidget(self.version_label, alignment=Qt.AlignTop)
 

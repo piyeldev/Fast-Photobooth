@@ -1,0 +1,4 @@
+#cam_list {
+    border: 3px solid #565b5e;
+    border-radius: 50px;
+}
