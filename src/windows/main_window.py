@@ -4,6 +4,7 @@ from components.topbar import TopBar
 from PySide6.QtGui import QFontDatabase
 from components.camera_view import CameraView
 import os
+from components.tools_view import ToolsView
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -34,7 +35,9 @@ class MainWindow(QWidget):
         self.main_view_layout.setContentsMargins(20, 0, 20, 0)
         self.main_view_widget.setLayout(self.main_view_layout)
         self.cam_view = CameraView()
+
         self.main_view_layout.addWidget(self.cam_view, alignment=Qt.AlignLeft)
+        self.main_view_layout.addWidget(ToolsView())
 
         self.scrollable = QScrollArea()
         self.scrollable.setWidgetResizable(True)
