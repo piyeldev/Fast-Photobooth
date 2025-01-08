@@ -61,6 +61,7 @@ class TopBar(QWidget):
 
     def settings_btn(self):
         self.settings_btn_widget = QPushButton()
+        self.settings_btn_widget.setCursor(Qt.CursorShape.PointingHandCursor)
         self.settings_btn_widget.setObjectName("settings_btn")
 
         self.settings_icon_img = QPixmap("../assets/icons/settings-icon.png")

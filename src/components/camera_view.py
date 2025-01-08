@@ -39,6 +39,7 @@ class CameraView(QWidget):
         self.detach_btn = QPushButton()
         self.detach_icon_img = QPixmap("../assets/icons/detach-icon.png")
         self.detach_icon = QIcon(self.detach_icon_img)
+        self.detach_btn.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.detach_btn.setIcon(self.detach_icon)
         self.detach_btn.setIconSize(self.detach_icon_img.size())

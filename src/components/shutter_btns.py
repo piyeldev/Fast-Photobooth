@@ -18,7 +18,7 @@ class ShutterBtns(QWidget):
 
     def take_pic_btn(self):
         self.take_pic_btn_widg = QPushButton()
-        # self.take_pic_btn_widg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.take_pic_btn_widg.setCursor(Qt.CursorShape.PointingHandCursor)
         self.take_pic_btn_widg.setFixedWidth(53)
         self.take_pic_btn_widg.setFixedHeight(53)
         self.take_pic_pxmp = QPixmap("../assets/icons/camera_icon.png")
@@ -34,6 +34,7 @@ class ShutterBtns(QWidget):
         """)
     def record_vid_btn(self):
         self.record_btn = QPushButton("Record")
+        self.record_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         record_pxmp = QPixmap("../assets/icons/video-icon.png")
         record_icon = QIcon()
         record_icon.addPixmap(record_pxmp)
