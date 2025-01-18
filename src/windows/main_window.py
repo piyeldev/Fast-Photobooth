@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScroll
 from PySide6.QtCore import Qt
 from components.topbar import TopBar
 from PySide6.QtGui import QFontDatabase
-from components.camera_view import CameraView
+from components.left_side import LeftSide
 import os
 from components.tools_view import ToolsView
 
@@ -34,9 +34,9 @@ class MainWindow(QMainWindow):
         self.main_view_layout = QHBoxLayout()
         self.main_view_layout.setContentsMargins(20, 0, 0, 0)
         self.main_view_widget.setLayout(self.main_view_layout)
-        self.cam_view = CameraView()
+        self.left_side = LeftSide()
 
-        self.main_view_layout.addWidget(self.cam_view, alignment=Qt.AlignTop)
+        self.main_view_layout.addWidget(self.left_side, alignment=Qt.AlignTop)
         self.main_view_layout.addWidget(ToolsView())
 
         self.scrollable = QScrollArea()

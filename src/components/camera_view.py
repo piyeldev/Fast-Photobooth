@@ -1,8 +1,17 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QSizePolicy
+from PySide6.QtWidgets import (QWidget, 
+                               QVBoxLayout, 
+                               QHBoxLayout, 
+                               QLabel, 
+                               QPushButton, 
+                               QComboBox, 
+                               QSizePolicy,
+                               QStackedLayout)
 from PySide6.QtGui import QFont, QPixmap, QIcon
-from PySide6.QtCore import Qt, QRect
-from components.load_stylesheet import load_stylesheet
-from components.shutter_btns import ShutterBtns
+from PySide6.QtCore import Qt, QRect, QSize, QTimer
+from PySide6.QtMultimediaWidgets import QVideoWidget
+from components.camera import Camera
+from components.captures_list import CapturesList
+
 class CameraView(QWidget):
     def __init__(self):
         super().__init__()
@@ -11,13 +20,20 @@ class CameraView(QWidget):
 
         self.layout.setSpacing(0)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.toolbar()
+
+        #init camera class
+        self.camera_controller = Camera()
+
         self.cam_feed()
+        self.toolbar()
+        self.camera_buttons_init()
+        
 
         self.layout.setContentsMargins(0,0,0,0)
         self.layout.addWidget(self.toolbar_widget)
-        self.layout.addWidget(self.camera_feed_widg, alignment=Qt.AlignTop)
-        self.layout.addWidget(ShutterBtns(), alignment=Qt.AlignCenter)
+        self.layout.addWidget(self.cam_widg, alignment=Qt.AlignTop)
+        self.layout.addWidget(self.camera_buttons_widget, alignment=Qt.AlignCenter)
+
         # self.setStyleSheet(load_stylesheet('camera_view_styles.qss'))
         
 
@@ -47,11 +63,17 @@ class CameraView(QWidget):
 
         self.toolbar_widget_layout.addWidget(self.detach_btn, alignment=Qt.AlignRight)
 
+        self.choose_camera_dropdown()
+
+        
+    def choose_camera_dropdown(self):
         # camera list dropdown
         self.camera_list = QComboBox()
         self.camera_list.setMaximumWidth(160)
         self.camera_list.setObjectName("cam_list")
-        self.camera_list.addItems(['0 - fek cam', '1 - tru cam'])
+
+        self.camera_list.addItems(self.camera_controller.get_available_cameras())
+
         self.camera_list.view().window().setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.camera_list.view().window().setAttribute(Qt.WA_TranslucentBackground)
 
@@ -69,8 +91,85 @@ class CameraView(QWidget):
         
         """)
 
+        self.camera_list.currentIndexChanged.connect(self.camera_controller.change_camera)
+
+    
 
     def cam_feed(self):
-        self.camera_feed_widg = QLabel()
-        self.camera_feed_pixmap_temp = QPixmap("../assets/imgs/Rectangle.png")
-        self.camera_feed_widg.setPixmap(self.camera_feed_pixmap_temp)
+        self.cam_widg = QWidget()
+        self.cam_widg.setFixedSize(640, 480)
+        layout = QVBoxLayout()
+        self.cam_widg.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self.video_widget = QVideoWidget()
+        layout.addWidget(self.video_widget)
+        self.video_widget.setFixedSize(640, 480)
+
+
+
+        try:
+            self.camera_controller.initialize_camera(self.video_widget, QSize(640, 480))
+        except RuntimeError as e:
+            print(e)
+
+        
+    def camera_buttons_init(self):
+        self.camera_buttons_widget = QWidget()
+        layout = QHBoxLayout()
+        self.camera_buttons_widget.setLayout(layout)
+
+        self.camera_buttons_widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.take_pic_btn()
+        self.record_vid_btn()
+
+        layout.addWidget(self.take_pic_btn_widg)
+        layout.addWidget(self.record_btn)
+
+    def take_pic_btn(self):
+        self.take_pic_btn_widg = QPushButton()
+        self.take_pic_btn_widg.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.take_pic_btn_widg.setFixedWidth(53)
+        self.take_pic_btn_widg.setFixedHeight(53)
+        self.take_pic_pxmp = QPixmap("../assets/icons/camera_icon.png")
+        self.take_pic_icon = QIcon()
+        self.take_pic_btn_widg.setIconSize(self.take_pic_pxmp.rect().size())
+        self.take_pic_icon.addPixmap(self.take_pic_pxmp)
+        self.take_pic_btn_widg.setIcon(self.take_pic_icon)
+        self.take_pic_btn_widg.setStyleSheet("""
+        QPushButton {
+            border-radius: 25px; 
+            background-color: #1fb141; 
+        }
+        """)
+
+        self.take_pic_btn_widg.clicked.connect(self.capture_and_display_img)
+    
+    def capture_and_display_img(self):
+        captures_list = CapturesList()
+
+        img_path = self.camera_controller.capture_image()
+        captures_list.addPicture(img_path)
+
+    def record_vid_btn(self):
+        self.record_btn = QPushButton("Record")
+        self.record_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        record_pxmp = QPixmap("../assets/icons/video-icon.png")
+        record_icon = QIcon()
+        record_icon.addPixmap(record_pxmp)
+
+        self.record_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        record_btn_font = QFont("Poppins", 14, QFont.Weight.Bold)
+        self.record_btn.setFont(record_btn_font)
+
+        self.record_btn.setIcon(record_icon)
+        self.record_btn.setIconSize(record_pxmp.rect().size())
+
+        self.record_btn.setStyleSheet("""
+        QPushButton {
+            width: 130px;
+            height: 53px;
+            border-radius: 25px; 
+            background-color: #1fb141; 
+        }
+        """)
