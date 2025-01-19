@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (QWidget,
                                QComboBox, 
                                QSizePolicy,
                                QStackedLayout)
-from PySide6.QtGui import QFont, QPixmap, QIcon
+from PySide6.QtGui import QFont, QPixmap, QIcon, QPainter
 from PySide6.QtCore import Qt, QRect, QSize, QTimer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.camera import Camera
@@ -106,8 +106,6 @@ class CameraView(QWidget):
         layout.addWidget(self.video_widget)
         self.video_widget.setFixedSize(640, 480)
 
-
-
         try:
             self.camera_controller.initialize_camera(self.video_widget, QSize(640, 480))
         except RuntimeError as e:
@@ -149,6 +147,7 @@ class CameraView(QWidget):
         captures_list = CapturesList()
 
         img_path = self.camera_controller.capture_image()
+        print(f'{__name__}: {img_path}')
         captures_list.addPicture(img_path)
 
     def record_vid_btn(self):

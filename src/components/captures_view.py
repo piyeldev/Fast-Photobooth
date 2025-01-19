@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QFrame, QSizePolicy, QVBoxLayout, QSpacerItem, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QScrollArea
 from PySide6.QtGui import QPixmap, QFont
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 from components.picture_item import PictureItem
 from components.captures_list import CapturesList
 
@@ -12,51 +12,16 @@ class CapturesView(QWidget):
         layout.setContentsMargins(6, 0, 0, 0)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
-        self.toolbar()
-
         self.pictures = []
         self.captures_list = CapturesList(parent=self)
+
+        self.toolbar()
 
         layout.addWidget(self.toolbar_widget, alignment=Qt.AlignTop)
         layout.addWidget(self.captures_list)
 
     def vid(self):
         pass
-
-        
-    def pics(self):
-        pass
-        # self.pics_scroll_area = QScrollArea()
-        # self.pics_list = QWidget()
-        # self.pics_layout = QHBoxLayout()
-        # self.pics_scroll_area.setWidget(self.pics_list)
-        # self.pics_list.setLayout(self.pics_layout)
-        # self.pics_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        
-
-        # self.pics_layout.setContentsMargins(0, 0, 0, 0)
-
-        # self.pics_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        # self.pics_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        # self.pics_scroll_area.setWidgetResizable(True)
-        # self.pics_scroll_area.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-
-        # max_size = QSize(214, 160)
-        # pic1 = PictureItem(QPixmap("../assets/imgs/test.png"))
-        # pic1.setPixmapSize(max_size)
-        # self.pics_layout.addWidget(pic1)
-
-
-        # for i in range (0, 4):
-        #     object = QLabel()
-        #     object.setPixmap(QPixmap("../assets/imgs/Rectangle.png"))
-        #     object.setMaximumWidth(176)
-        #     object.setMaximumHeight(103)
-        #     object.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        #     pics_list_height = object.height()
-        #     layout.addWidget(object)
 
 
     def toolbar(self):
@@ -79,6 +44,9 @@ class CapturesView(QWidget):
 
         select_all_and_delete_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
+        select_all_and_delete_btn.clicked.connect(self.captures_list.removeAll)
+
         layout.addWidget(captures_label, alignment=Qt.AlignTop)
         layout.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed))
         layout.addWidget(select_all_and_delete_btn, alignment=Qt.AlignTop)
+    
