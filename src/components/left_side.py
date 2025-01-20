@@ -8,8 +8,9 @@ class LeftSide(QWidget):
         super().__init__()
         layout = QVBoxLayout()
         self.setLayout(layout)
+        self.setContentsMargins(0, 0, 0, 0)
 
         layout.setAlignment(Qt.AlignTop)
-        layout.addWidget(CameraView())
+        layout.addWidget(CameraView(), Qt.AlignLeft)
         layout.addWidget(Queue())
 

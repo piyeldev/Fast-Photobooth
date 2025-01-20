@@ -29,10 +29,11 @@ class MainWindow(QMainWindow):
 
 
 
+
     def main_view(self):
         self.main_view_widget = QWidget()
         self.main_view_layout = QHBoxLayout()
-        self.main_view_layout.setContentsMargins(20, 0, 0, 0)
+        self.main_view_layout.setContentsMargins(0, 0, 0, 0)
         self.main_view_widget.setLayout(self.main_view_layout)
         self.left_side = LeftSide()
 

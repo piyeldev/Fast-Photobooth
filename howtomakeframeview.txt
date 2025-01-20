@@ -1,0 +1,14 @@
+first put the frame in the frame view
+next make the frame editor appear when edit frame btn clicked
+have a dropdown for changing between frames
+add a remove and add frame
+give the ability to draw rectangles with number orders to indicate where to put the images on capture, and how many
+use json or any other technique to store the locations and size of the rectangles so that it can be used in capture
+if the images are sobra ra, then appear the error: too many pictures, please remove pictures or clear all and try again
+
+store the information of rectangles in a list
+
+everyframe, there are different information for placeholders
+
+1st {'count': '1', 'x': 43.05147242015048, 'y': 95.71809249203825, 'width': 473.5661966216553, 'height': 417.3308832652868}
+2nd {'count': '1', 'height': 417.3308832652868, 'width': 473.5661966216553, 'x': 43.05147242015048, 'y': 95.71809249203825}
