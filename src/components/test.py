@@ -1,59 +1,56 @@
-import sys
-from PySide6.QtWidgets import (
-    QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
-)
-from PySide6.QtGui import QPixmap, QMouseEvent, QPen, QColor
-from PySide6.QtCore import QRectF, QPointF, Qt
+from PySide6.QtPrintSupport import QPrintDialog, QPrinter
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton
+from PySide6.QtGui import QPainter, QImage
+from PySide6.QtCore import Qt
 
-
-class ImageRectDrawer(QGraphicsView):
-    def __init__(self, image_path):
+class MainWindow(QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.image_path = image_path
 
-        # Set up the scene and image
-        self.scene = QGraphicsScene()
-        self.setScene(self.scene)
-        pixmap = QPixmap(self.image_path)
-        self.pixmap_item = QGraphicsPixmapItem(pixmap)
-        self.setFixedSize(pixmap.size())
-        self.setSceneRect(0, 0, pixmap.width(), pixmap.height())
-        self.scene.addItem(self.pixmap_item)
+        self.printer = QPrinter()
+        self.button = QPushButton("Print", self)
+        self.button.clicked.connect(self.open_print_dialog)
+        self.setCentralWidget(self.button)
 
-        # For rectangle drawing
-        self.start_point = None
-        self.current_rect_item = None
+    def open_print_dialog(self):
+        image = QImage("/home/fieled/Projects/PhotoBoothAutomation/src/out/framed/photo_27-framed-250124-130708.png")
+        self.dialog = QPrintDialog(self.printer, self)
+        if self.dialog.exec() == QPrintDialog.Accepted:
+            self.handle_print()
+            painter = QPainter()
+            if not painter.begin(self.printer):
+                print("Error: Failed to begin painting on the printer.")
+                return
 
-    def mousePressEvent(self, event: QMouseEvent):
-        if event.button() == Qt.LeftButton:
-            # Start drawing the rectangle
-            self.start_point = self.mapToScene(event.pos())
-            self.current_rect_item = QGraphicsRectItem()
-            self.current_rect_item.setPen(QPen(QColor("red")))
-            self.scene.addItem(self.current_rect_item)
+            # Calculate the scaling to fit the image within the printable area
+            rect = painter.viewport()
+            size = image.size()
+            size.scale(rect.size(), Qt.KeepAspectRatio)
+            painter.setViewport(rect.x(), rect.y(), size.width(), size.height())
+            painter.setWindow(image.rect())
 
-    def mouseMoveEvent(self, event: QMouseEvent):
-        if self.start_point and self.current_rect_item:
-            # Update the rectangle size as the mouse moves
-            current_point = self.mapToScene(event.pos())
-            rect = QRectF(self.start_point, current_point).normalized()
-            self.current_rect_item.setRect(rect)
+            # Draw the image on the printer's painter
+            painter.drawImage(0, 0, image)
+            painter.end()
+            print("Printing completed successfully.")
+        else:
+            print("Printing was canceled by the user.")
 
-    def mouseReleaseEvent(self, event: QMouseEvent):
-        if event.button() == Qt.LeftButton and self.start_point and self.current_rect_item:
-            # Finalize the rectangle and print its coordinates relative to the image
-            rect = self.current_rect_item.rect()
-            image_rect = self.pixmap_item.mapFromScene(rect).boundingRect()
-            info = {"count": "1", "height": f"{image_rect.size().height()}", "width": f"{image_rect.size().width()}", "x": f"{image_rect.x()}", "y": f"{image_rect.y()}"}
+    def handle_print(self):
+        # Retrieve selected print settings
+        printer = self.dialog.printer()
+        printer_name = printer.printerName()
+        paper_size = printer.pageLayout()
+        resolution = printer.resolution()
+        color_mode = printer.colorMode()  # 0 = GrayScale, 1 = Color
 
-            print(info)
-            print(f"Rectangle coordinates relative to the image: {image_rect}")
-            self.start_point = None
-            self.current_rect_item = None
+        # Print settings for debugging
+        print(f"Printer: {printer_name}")
+        print(f"Paper Size: {paper_size}")
+        print(f"Resolution: {resolution} DPI")
+        print(f"Color Mode: {'Color' if color_mode else 'Grayscale'}")
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    viewer = ImageRectDrawer("/home/fieled/Pictures/book-month-pc.png")
-    viewer.show()
-    sys.exit(app.exec())
+app = QApplication([])
+window = MainWindow()
+window.show()
+app.exec_()

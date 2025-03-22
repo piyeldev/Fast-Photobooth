@@ -13,7 +13,7 @@ class CapturesView(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self.pictures = []
-        self.captures_list = CapturesList(parent=self)
+        self.captures_list = CapturesList()
 
         self.toolbar()
 

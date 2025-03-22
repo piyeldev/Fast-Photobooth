@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from components.camera_view import CameraView
-from components.queue import Queue
+from components.queue_gui import Queue
 from PySide6.QtCore import Qt
 
 class LeftSide(QWidget):

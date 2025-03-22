@@ -1,9 +1,10 @@
-from PySide6.QtWidgets import QWidget, QInputDialog, QLineEdit, QFormLayout, QFileDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QHBoxLayout, QSizePolicy, QComboBox, QGridLayout
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtWidgets import QWidget, QInputDialog, QCheckBox, QFormLayout, QFileDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QHBoxLayout, QSizePolicy, QComboBox, QGridLayout
+from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize
-from components.frame import Frame, FramePresets
+from components.frame import FramePresets
 import os
 from components.frame_viewport import FrameViewport
+from components.pixmap_viewer import PixmapViewer
 
 class EditFrameWindow(QWidget):
     def __init__(self):
@@ -11,6 +12,7 @@ class EditFrameWindow(QWidget):
         self.setWindowTitle("Edit Frame")
         self.resize(400, 300)
 
+        self.frame_presets = FramePresets()
 
         # Add content to the new window
         self.layout = QVBoxLayout(self)
@@ -25,7 +27,7 @@ class EditFrameWindow(QWidget):
 
 
         self.main_content()
-
+        self.pixmap_viewer = PixmapViewer()
         # self.setStyleSheet("border: 1px solid red;")
 
 
@@ -42,13 +44,7 @@ class EditFrameWindow(QWidget):
         self.tools()
 
     def viewport(self):
-        self.frame = Frame()
-        list_frames = self.frame.getFrames()
-
-        if len(list_frames) == 0:
-            pixmap_path = "../assets/imgs/Rectangle.png"
-        else:
-            pixmap_path = self.frame.activeFrame()
+        pixmap_path = "../assets/imgs/Rectangle.png"
 
         self.frame_viewport = FrameViewport(pixmap_path)
         self.frame_viewport.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -62,7 +58,6 @@ class EditFrameWindow(QWidget):
         super().resizeEvent(event)
 
     def tools_form(self):
-        self.frame_presets = FramePresets()
         self.frame_presets.frame_preset_added.connect(self.parseNewPreset)
 
         tools_form_widget = QWidget()
@@ -118,6 +113,13 @@ class EditFrameWindow(QWidget):
 
         layout.addRow(new_preset_btn, delete_preset_btn)
 
+        self.initializePresetDropdown()
+
+
+    def initializePresetDropdown(self):
+        for preset in self.frame_presets.getPresets():
+            self.frame_preset_dropdown.addItem(preset["name"])
+
     def parseNewPreset(self, preset:dict):
         name = preset["name"]
 
@@ -130,6 +132,7 @@ class EditFrameWindow(QWidget):
         name = preset_selected["name"]
         frame_path = preset_selected["frame_path"]
         placeholders = preset_selected["placeholders"]
+        qr_code_placeholder = preset_selected["qr_code_placeholder"]
 
         self.preset_name.setText(name)
         self.path_label_button.setText(frame_path)
@@ -147,6 +150,12 @@ class EditFrameWindow(QWidget):
         
         self.frame_viewport.setPlaceholderList(placeholders)
 
+        if qr_code_placeholder:
+            self.frame_viewport.setQRCodePlaceholderOnViewport(qr_code_placeholder)
+        else:
+            self.frame_viewport.setQRCodePlaceholderOnViewport({"x": 0, "y": 0, "width": 0, "height": 0})
+
+
 
     def delete_preset(self):
         index = self.frame_preset_dropdown.currentIndex()
@@ -159,9 +168,13 @@ class EditFrameWindow(QWidget):
     def empty_all_fields(self):
         self.preset_name.setText("")
 
-    def updateFramePathAndDisplay(self, path:str):
+    def updateFramePathAndDisplay(self, path:str, index:int):
         self.path_label_button.setText(path)
         self.switchFrameViewportImage(path)
+
+        if index == self.frame_presets.getCurrentIndex():
+            self.pixmap_viewer.setPixmapToView(QPixmap(path))
+
 
     def createNewPreset(self):
         name, ok = QInputDialog.getText(self, "Preset Name", "Enter Preset Name: ")
@@ -177,7 +190,7 @@ class EditFrameWindow(QWidget):
         current_index = self.frame_preset_dropdown.currentIndex()
         if file_path != "":
             self.frame_presets.addFrameToPreset(current_index, file_path)
-            self.updateFramePathAndDisplay(file_path)
+            self.updateFramePathAndDisplay(file_path, current_index)
 
     def tools(self):
         self.tools_widget = QWidget(self)
@@ -190,10 +203,22 @@ class EditFrameWindow(QWidget):
 
         self.tools_form()
         self.placeholders()
+        self.qrCodeModeSwitcher()
 
         # save to file feature later
 
+    def qrCodeModeSwitcher(self):
+        self.is_qr_code_mode = QCheckBox("Create QR Code Placeholder")
+        self.is_qr_code_mode.checkStateChanged.connect(self.switchQRCodeMode)
+        self.tools_layout.addWidget(self.is_qr_code_mode)
     
+    def switchQRCodeMode(self, state):
+        if state == Qt.CheckState.Checked:
+            print("yes")
+            self.frame_viewport.set_is_qr_code_mode(True)
+        else:
+            print("yes")
+            self.frame_viewport.set_is_qr_code_mode(False)
 
     def switchFrameViewportImage(self, img_path:str):
         self.frame_viewport.set_pixmap(img_path)
@@ -230,6 +255,7 @@ class EditFrameWindow(QWidget):
 
         # placehoders list ---- start
         self.frame_viewport.placeholder_added.connect(self.parsePlaceholderInformation)
+        self.frame_viewport.qr_code_placeholder_added.connect(self.parseQrCodePlaceholderInformation)
 
         self.placeholders_list = QListWidget()
         placeholders_layout.addWidget(self.placeholders_list)
@@ -240,6 +266,11 @@ class EditFrameWindow(QWidget):
 
         current_index = self.frame_preset_dropdown.currentIndex()
         self.frame_presets.addPlaceholderToPreset(current_index, placeholder)
+
+    def parseQrCodePlaceholderInformation(self, qr_code_placeholder:dict):
+        current_index = self.frame_preset_dropdown.currentIndex()
+        self.frame_presets.setQrCodePlaceholder(current_index, qr_code_placeholder)
+        
 
 
 

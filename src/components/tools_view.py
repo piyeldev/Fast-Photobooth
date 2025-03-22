@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 import components.camera_view
 from components.frame_view import FrameView
 from components.captures_view import CapturesView
-from components.name_of_customer_getter import NameForm
+from components.acquire_name import NameForm
 from components.upload_online import OnlineUploader
 from components.print_options import PrintOptions
 

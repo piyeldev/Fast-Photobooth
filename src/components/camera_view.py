@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QWidget,
                                QSizePolicy,
                                QStackedLayout)
 from PySide6.QtGui import QFont, QPixmap, QIcon, QPainter
-from PySide6.QtCore import Qt, QRect, QSize, QTimer
+from PySide6.QtCore import Qt, QRect, QSize, QTimer, QElapsedTimer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.camera import Camera
 from components.captures_list import CapturesList
@@ -119,10 +119,10 @@ class CameraView(QWidget):
 
         self.camera_buttons_widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.take_pic_btn()
-        self.record_vid_btn()
+        # self.record_vid_btn()
 
         layout.addWidget(self.take_pic_btn_widg)
-        layout.addWidget(self.record_btn)
+        # layout.addWidget(self.record_btn)
 
     def take_pic_btn(self):
         self.take_pic_btn_widg = QPushButton()
@@ -153,6 +153,7 @@ class CameraView(QWidget):
     def record_vid_btn(self):
         self.record_btn = QPushButton("Record")
         self.record_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.record_btn.clicked.connect(self.record_vid)
         record_pxmp = QPixmap("../assets/icons/video-icon.png")
         record_icon = QIcon()
         record_icon.addPixmap(record_pxmp)
@@ -172,3 +173,38 @@ class CameraView(QWidget):
             background-color: #1fb141; 
         }
         """)
+        self.elapsed_timer = QElapsedTimer()
+        self.update_interval = 100
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_display)
+    
+    def start_recording(self):
+        self.elapsed_timer.start()
+        self.time_button.setText("Stop Timing")
+        self.result_label.setText("Timing in progress...")
+        self.timer.start(self.update_interval) 
+
+        self.camera_controller.start_recording()
+
+    def stop_recording(self):
+        self.timer.stop()  # Stop the update timer
+        elapsed_seconds = self.elapsed_timer.elapsed() // 1000
+        self.result_label.setText(f"Total time elapsed: {elapsed_seconds} seconds")
+        self.time_button.setText("Start Timing")
+        self.elapsed_timer.invalidate()
+
+        self.camera_controller.stop_recording()
+
+
+    def update_display(self):
+        if self.elapsed_timer.isValid():
+            elapsed_seconds = self.elapsed_timer.elapsed() // 1000
+            self.record_btn.setText(f"{elapsed_seconds}")
+
+    def record_vid(self):
+        is_recording = self.camera_controller.isRecording()
+
+        if not is_recording:
+            self.camera_controller.start_recording()
+        else:
+            self.camera_controller.stop_recording()

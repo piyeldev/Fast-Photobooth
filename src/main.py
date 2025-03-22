@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QApplication
 import sys
 from windows.main_window import MainWindow
 from PySide6.QtGui import QPalette, QColor
+from components.queue_worker import QueueWorker
 
 
 def set_dark_mode(app):
@@ -26,4 +27,7 @@ if __name__ == "__main__":
     set_dark_mode(app)
     window = MainWindow()
     window.showMaximized()
+
+    queue_worker = QueueWorker()
+    app.aboutToQuit.connect(queue_worker.stop_worker)
     app.exec()

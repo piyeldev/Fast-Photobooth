@@ -1,13 +1,16 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem
 from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize
-from components.frame import Frame
 from windows.edit_frame_window import EditFrameWindow
+from components.frame import FramePresets
+from components.pixmap_viewer import PixmapViewer
+from components.captures_list import CapturesList
 class FrameView(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout()
         self.setLayout(layout)
+        self.rectangle_path = "../assets/imgs/Rectangle.png"
 
         self.toolbar()
         self.frame()
@@ -15,6 +18,10 @@ class FrameView(QWidget):
         layout.addWidget(self.frame_widget, alignment=Qt.AlignTop)
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        self.captures_list = CapturesList()
+
+
 
 
     def toolbar(self):
@@ -42,23 +49,48 @@ class FrameView(QWidget):
         edit_btn.clicked.connect(self.open_edit_frame_window)
 
         edit_btn.setStyleSheet("background-color: #1fb141; padding: 0px 10px; width: 111px; height: 25px; border-radius: 8px;")
+
+        self.frame_presets = FramePresets()
+        self.presets_list = self.frame_presets.getPresets()
+        self.frame_presets.frame_preset_added.connect(self.getPresets)
+        self.frame_presets.frame_preset_deleted.connect(self.removePresetFromList)
+
+        self.frame_choose = QComboBox(self.toolbar)
+        self.frame_choose.setMaximumWidth(self.frame_choose.width())
+        self.frame_choose.currentIndexChanged.connect(self.changeFrames)
+        
+
+
         # display elements
         toolbar_layout.addWidget(label)
+        toolbar_layout.addWidget(self.frame_choose, Qt.AlignRight)
         toolbar_layout.addWidget(edit_btn)
 
-    def frame(self):
-        self.frame_widget = QLabel()
-        frame_max_size = QSize(640, 480)
-        self.frame_widget.setMaximumWidth(640)
+    def removePresetFromList(self, index:int):
+        self.frame_choose.removeItem(index)
 
-        frame = Frame()
-        list_frames = frame.getFrames()
-        if len(list_frames) == 0:
-            pixmap = QPixmap("../assets/imgs/Rectangle.png")
+    def getPresets(self, dict):
+        self.presets_list = self.frame_presets.getPresets()
+
+        self.frame_choose.clear()
+        for preset in self.presets_list:
+            self.frame_choose.addItem(preset["name"])
+
+    
+
+    def changeFrames(self, index):
+        self.captures_list.removeAll()
+        path = self.frame_presets.getPresets()[index]["frame_path"]
+        print(self.frame_presets.getPresets()[index])
+        if path != "":
+            self.frame_widget.setPixmapToView(QPixmap(path))
         else:
-            pixmap = QPixmap(frame.activeFrame())
+            self.frame_widget.setPixmapToView(QPixmap(self.rectangle_path))
 
-        self.frame_widget.setPixmap(pixmap.scaled(frame_max_size, Qt.KeepAspectRatio))
+        self.frame_presets.setCurrentActivePreset(index)
+
+    def frame(self):
+        self.frame_widget = PixmapViewer()
 
     def open_edit_frame_window(self):
         self.edit_frame_window = EditFrameWindow()
