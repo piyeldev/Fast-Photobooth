@@ -52,13 +52,11 @@ class PictureItem(QWidget):
 
     def enterEvent(self, event):
         super().enterEvent(event)
-        print("show")
         self.layout.setCurrentIndex(1)
 
 
     def leaveEvent(self, event):
         super().leaveEvent(event)
-        print("hide")
         self.layout.setCurrentIndex(0)
 
 

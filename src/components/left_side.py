@@ -14,3 +14,4 @@ class LeftSide(QWidget):
         layout.addWidget(CameraView(), Qt.AlignLeft)
         layout.addWidget(Queue())
 
+

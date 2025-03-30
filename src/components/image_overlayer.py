@@ -15,7 +15,7 @@ class ImageOverlayer(QObject):
         self.save_path = self.home_dir + "/Pictures/FastPhotoCaptures/Processed"
         print(self.save_path)
         if not os.path.exists(self.save_path):
-            os.mkdir(self.save_path)
+            os.makedirs(self.save_path)
         
     def overlay_image(self, image_paths: list, coords:list, frame:str):
         # Load the photostrip frame (with transparency)

@@ -1,8 +1,10 @@
 from PySide6.QtWidgets import QApplication
-import sys
+import sys, os
 from windows.main_window import MainWindow
-from PySide6.QtGui import QPalette, QColor
+from PySide6.QtGui import QPalette, QColor, QFont, QFontDatabase
 from components.queue_worker import QueueWorker
+
+print(os.getcwd())
 
 
 def set_dark_mode(app):
@@ -22,9 +24,25 @@ def set_dark_mode(app):
     palette.setColor(QPalette.HighlightedText, QColor(0, 0, 0))
     app.setPalette(palette)
 
+def load_fonts():
+        poppins_dir = '../assets/fonts/Poppins' # use when running from main.py, not vscode debugger
+        # poppins_dir = f'{os.getcwd()}/assets/fonts/Poppins'
+        poppins_font_files = os.listdir(poppins_dir)
+
+        for font_file in poppins_font_files:
+            font_id = QFontDatabase.addApplicationFont(f'{poppins_dir}/{font_file}')
+            if font_id == -1:
+                print(f"err: font failed to load {font_file}:{font_id}")
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     set_dark_mode(app)
+
+    # set font
+    load_fonts()
+    app_font = QFont("Poppins")
+    app.setFont(app_font)
+
     window = MainWindow()
     window.showMaximized()
 

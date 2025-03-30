@@ -1,15 +1,19 @@
-from PySide6.QtWidgets import QWidget, QLineEdit, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QCheckBox, QComboBox, QPushButton, QSizePolicy
-from PySide6.QtGui import QFont, QPixmap, QIcon, QPageSize, QDoubleValidator, QPageSize, QPageLayout
-from PySide6.QtCore import Qt, QSizeF
+from icecream import ic
+from PySide6.QtCore import QSizeF, Qt
+from PySide6.QtGui import (QDoubleValidator, QFont, QIcon, QPageLayout,
+                           QPageSize, QPixmap)
 from PySide6.QtPrintSupport import QPrinter
-from components.frame import FramePresets
-from components.printer import Printer
-from components.upload_online import OnlineUploader
-from components.worker import WorkerThread
-from components.queue_worker import QueueWorker
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QFormLayout, QHBoxLayout,
+                               QLabel, QLineEdit, QPushButton, QSizePolicy,
+                               QVBoxLayout, QWidget)
+
 from components.acquire_name import NameForm
 from components.frame import FramePresets
-from icecream import ic 
+from components.printer import Printer
+from components.queue_worker import QueueWorker
+from components.upload_online import OnlineUploader
+from components.worker import WorkerThread
+
 
 class PrintOptions(QWidget):
     def __init__(self):
@@ -18,10 +22,12 @@ class PrintOptions(QWidget):
         self.setLayout(layout)
         layout.setContentsMargins(0, 6, 0, 0)
 
+        # heading of section
         label = QLabel("Print Options")
         self.font = QFont("Poppins", 16, QFont.Weight.DemiBold)
         label.setFont(self.font)
 
+        # process and print btn
         process_btn = QPushButton("Process and Print")
         process_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         process_btn.setStyleSheet("background-color: #1fb141; border-radius: 0.5em; padding: 6px 12px")
@@ -33,6 +39,7 @@ class PrintOptions(QWidget):
         process_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         process_btn.clicked.connect(self.process_to_queue_worker)
         
+        # variables for other widgets
         self.frame_presets = FramePresets()
         self.queue_worker = QueueWorker()
         self.online_uploader = OnlineUploader()
@@ -40,8 +47,10 @@ class PrintOptions(QWidget):
         self.printer = Printer()
         self.frame_presets = FramePresets()
 
+        # the function for options gui
         self.options()
 
+        # instantiate the widgets in the layout
         layout.addWidget(label)
         layout.addWidget(self.options_widget)
         layout.addWidget(process_btn)
@@ -63,7 +72,6 @@ class PrintOptions(QWidget):
         page_size = QPageSize(custom_size, QPageSize.Unit.Inch, "CustomSize")
         printer_instance.setPageSize(page_size)
 
-        ic()
         self.queue_worker.addWork({
             "path_to_img": path, 
             "printer_instance": printer_instance, 
@@ -98,11 +106,13 @@ class PrintOptions(QWidget):
 
         # custom size fields
         self.custom_size_label = QLabel("Size: ")
+        self.custom_size_label.setFont(lbl_font)
         self.custom_size_fields = QWidget()
         self.custom_size_fields_layout = QHBoxLayout()
         self.custom_size_fields.setLayout(self.custom_size_fields_layout)
         self.custom_size_fields_layout.setContentsMargins(0,0,0,0)
         self.custom_size_fields_layout.setAlignment(Qt.AlignLeft)
+
 
         self.width_custom = QLineEdit()
         self.width_custom.setValidator(QDoubleValidator())

@@ -8,8 +8,9 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/main.py",
-            "console": "integratedTerminal"
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src"
         }
     ]
 }

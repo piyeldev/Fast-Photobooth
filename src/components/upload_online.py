@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QCheckBox, QStyle, QSizePolicy
 from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtCore import Qt
+from icecream import ic
 
 
 class OnlineUploader(QWidget):
@@ -53,7 +54,7 @@ class OnlineUploader(QWidget):
         layout.addWidget(self.checkbox)
         # layout.addWidget(self.sign_in_btn)
 
-        self.is_upload_state = True
+        self.is_upload_state = self.checkbox.isChecked()
 
     def getIsUploadState(self):
         return self.is_upload_state

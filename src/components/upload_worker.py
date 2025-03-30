@@ -7,12 +7,14 @@ import os
 from PySide6.QtCore import QObject, Signal
 from PIL import Image
 from components.frame import FramePresets
+from icecream import ic
 
 import qrcode
 
 
 class UploadWorker(QObject):
     output = Signal(str)
+    errorSig = Signal(str)
     
     def __init__(self):
         super().__init__()
@@ -34,6 +36,8 @@ class UploadWorker(QObject):
         image_path = img_path
         image = Image.open(image_path)
         file_link = self.upload_photo(image_path)
+        if not file_link:
+            return
         qr_code = qrcode.make(file_link)
         qr_code = qr_code.convert(image.mode)
 
@@ -47,7 +51,8 @@ class UploadWorker(QObject):
 
         self.output.emit(new_img_path)
 
-    def upload_photo(self, image_path:str):
+    def upload_photo(self, image_path:str, retries: int = 3):
+        ic()
         try:
             creds = self.authenticate()
             service = build('drive', 'v3', credentials=creds)
@@ -79,29 +84,17 @@ class UploadWorker(QObject):
 
             # Generate the direct link to the file
             file_link = f"https://drive.google.com/uc?id={file_id}&export=download"
+            return file_link            
 
-            self.output.emit(file_link)
-            return file_link
-            
-
-        except google.auth.exceptions.GoogleAuthError as auth_error:
-            print("Authentication Error:", auth_error)
-            self.output.emit("err")
-            return "err"
-
-        except HttpError as http_error:
-            print("An error occurred with the API:", http_error)
-            self.output.emit("err")
-            return "err"
-
-        except FileNotFoundError:
-            print("The file was not found. Please check the file path.")
-            self.output.emit("err")
-
-            return "err"
+        except (google.auth.exceptions.GoogleAuthError, HttpError, FileNotFoundError) as e:
+            if retries > 0:
+                print(f"Error occurred: {e}. Retrying... ({retries} retries left)")
+                ic()
+                return self.upload_photo(image_path, retries - 1)
+            else:
+                err = f"Operation failed after multiple retries: {e}"
+                self.errorSig.emit(err)
 
         except Exception as e:
-            print("An unexpected error occurred:", e)
-            self.output.emit("err")
-
-            return "err"
+            err = f"An unexpected error occurred: {e}"
+            self.errorSig.emit(err)
