@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QImage, QPainter, QPageSize, QPageLayout
 import subprocess
 from icecream import ic
+from pathlib import Path
 
 class PrintService(QObject):
     def set_photo_paper_type(self, printer_name:str, set:bool):
@@ -16,6 +17,7 @@ class PrintService(QObject):
 
 
     def call(self, image_path:str, printer_instance:QPrinter):
+        ic()
         image = QImage(image_path)
         printer = printer_instance
 
@@ -23,7 +25,7 @@ class PrintService(QObject):
         
         # for debugging
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName("/home/fieled/Downloads/output.pdf")
+        printer.setOutputFileName(f"{Path.home()}Downloads/output.pdf")
 
         # proceed to printing
         painter = QPainter()

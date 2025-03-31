@@ -72,6 +72,7 @@ class PrintOptions(QWidget):
         page_size = QPageSize(custom_size, QPageSize.Unit.Inch, "CustomSize")
         printer_instance.setPageSize(page_size)
 
+        ic()
         self.queue_worker.addWork({
             "path_to_img": path, 
             "printer_instance": printer_instance, 

@@ -30,6 +30,7 @@ class UploadWorker(QObject):
         return creds
     
     def upload_and_overlay(self, img_path:str):
+        ic()
         current_index = self.frame_presets.getCurrentIndex()
         position = self.frame_presets.getPresets()[current_index]["qr_code_placeholder"]
 
@@ -84,6 +85,7 @@ class UploadWorker(QObject):
 
             # Generate the direct link to the file
             file_link = f"https://drive.google.com/uc?id={file_id}&export=download"
+            ic()
             return file_link            
 
         except (google.auth.exceptions.GoogleAuthError, HttpError, FileNotFoundError) as e:
@@ -92,6 +94,7 @@ class UploadWorker(QObject):
                 ic()
                 return self.upload_photo(image_path, retries - 1)
             else:
+                ic()
                 err = f"Operation failed after multiple retries: {e}"
                 self.errorSig.emit(err)
 

@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, Signal
 from queue import Queue
 from components.worker import WorkerThread
 from icecream import ic
+import os
 
 class QueueWorker(QObject):
     _instance = None
@@ -31,6 +32,7 @@ class QueueWorker(QObject):
         self.current_work_number = 0
 
     def sendCurrentArgs(self, args:dict):
+        ic(args, os.path.basename(__file__))
         self.current_args.emit(args)
 
     def setStatus(self, status:str):
@@ -39,12 +41,14 @@ class QueueWorker(QObject):
 
     def addWork(self, args:dict):
         args["queue_num"] = self.current_work_number
-        ic(args)
+        ic()
+        # ic(args)
 
         data = [f'{args["name"]} - {args["frame_name"]} - {args["size_str"]}', args]
         self.work_added.emit(data)
+        # ic(data)
 
-
+        ic()
         self.work_queue.put(args)
 
         self.current_work_number += 1        

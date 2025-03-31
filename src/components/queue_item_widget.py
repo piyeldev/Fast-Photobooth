@@ -98,7 +98,6 @@ class QueueItemWidget(QWidget):
         from components.queue_gui import Queue
         queue = Queue()
         queue.destroy_queue_item_and_retry_operations(self.work_number)
-        ic("retried")
         pass
 
 

@@ -1,4 +1,4 @@
-import itertools
+import os, faulthandler
 
 from icecream import ic
 from PySide6 import Shiboken
@@ -61,35 +61,34 @@ class Queue(QWidget):
         item_widget = QueueItemWidget(item_data[0], item_data[1]["queue_num"])
         list_item.setData(Qt.UserRole, item_data[1])
         list_item.setSizeHint(item_widget.sizeHint())
-        ic()
         self.list.addItem(list_item)
         self.list.setItemWidget(list_item, item_widget)
-        ic()
 
     def find_item_by_value(self, value):
-        ic(Shiboken.isValid(self.list.item(0)))
-        ic(self.list.item(0))
+        ic()
         for index in range(self.list.count()):
+            ic(self.list.item(index), type(self.list.item(index)), index, self.list.count(), value)
+            faulthandler.enable()
             ic()
-            ic(self.list)
-            ic(index)
-            ic(self.list.item(index), type(self.list.item(index)))
-            list_item = self.list.item(index) # segmentation fault error in here
+            list_item = self.list.item(index) # segmentation fault error in here 
+            if list_item is None:
+                print(f"Item at index {index} is None")
+                continue
 
-            ic(list_item.data(Qt.UserRole))
-            
+            item_data = list_item.data(Qt.UserRole)
+            if not item_data or not isinstance(item_data, dict):
+                print(f"Invalid data at index {index}: {item_data}")
+                continue         
+
             if list_item.data(Qt.UserRole)["queue_num"] == value:
-                ic()
                 return list_item
         return None
     
     def update_progress_to_specific_queue_num(self, progress:str):
         ic()
         current_queue_item = self.find_item_by_value(self.current_work_number)
-        ic()
         current_queue_item_widget = self.list.itemWidget(current_queue_item)
         print(current_queue_item_widget)
-        ic()
         current_queue_item_widget.updateIcons(progress)
 
     def destroy_queue_item_and_retry_operations(self, work_number: int):
@@ -111,4 +110,5 @@ class Queue(QWidget):
                 widget_to_delete = None
 
     def setCurrentArgs(self, args: dict):
+        ic(args, os.path.basename(__file__))
         self.current_args = args
