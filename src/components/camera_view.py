@@ -11,6 +11,7 @@ from PySide6.QtCore import Qt, QRect, QSize, QTimer, QElapsedTimer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.camera import Camera
 from components.captures_list import CapturesList
+from icecream import ic
 
 class CameraView(QWidget):
     def __init__(self):
@@ -23,6 +24,7 @@ class CameraView(QWidget):
 
         #init camera class
         self.camera_controller = Camera()
+        self.camera_controller.image_captured.connect(self.display_to_captures_list)
 
         self.cam_feed()
         self.toolbar()
@@ -141,12 +143,17 @@ class CameraView(QWidget):
         }
         """)
 
-        self.take_pic_btn_widg.clicked.connect(self.capture_and_display_img)
+        self.take_pic_btn_widg.clicked.connect(self.capture_img)
     
-    def capture_and_display_img(self):
-        captures_list = CapturesList()
+    def capture_img(self):
+        ic()
+        self.camera_controller.capture_image()
 
-        img_path = self.camera_controller.capture_image()
+    def display_to_captures_list(self, img_path: str):
+
+        ic(1)
+        ic()
+        captures_list = CapturesList()
         print(f'{__name__}: {img_path}')
         captures_list.addPicture(img_path)
 

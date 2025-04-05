@@ -5,6 +5,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtCore import QTimer, QObject, Signal
 import os
 import time
+from icecream import ic
 
 class ImageOverlayer(QObject):
     overlay_image_made = Signal(str)
@@ -18,6 +19,7 @@ class ImageOverlayer(QObject):
             os.makedirs(self.save_path)
         
     def overlay_image(self, image_paths: list, coords:list, frame:str):
+        ic()
         # Load the photostrip frame (with transparency)
         frame = Image.open(frame).convert("RGBA")
         background = Image.new("RGBA", frame.size, (255, 255, 255, 0))
@@ -52,7 +54,7 @@ class ImageOverlayer(QObject):
         final_image = Image.alpha_composite(background, frame)
 
         # Save or display the final image
-        save_path = f"{self.save_path}/photostrip-{self.current_date_time()}.png"
+        save_path = f"{self.save_path}/{self.current_date_time()}.png"
         final_image.save(save_path)
         time.sleep(0.5)
         self.overlay_image_made.emit(save_path)        

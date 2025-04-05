@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PySide6.QtGui import QPixmap, QMouseEvent, QPen, QColor, QWheelEvent
 from PySide6.QtCore import QRectF, Qt, Signal
+from icecream import ic
 
 class FrameViewport(QGraphicsView):
     placeholder_added = Signal(dict)
@@ -133,7 +134,11 @@ class FrameViewport(QGraphicsView):
         if event.button() == Qt.LeftButton and self.start_point and self.current_rect_item:
             # Finalize the rectangle and print its coordinates relative to the image
             rect = self.current_rect_item.rect()
-
+            if rect.width() < 10 or rect.height() < 10:
+                if self.current_rect_item and self.current_rect_item.scene() == self.scene:
+                    self.scene.removeItem(self.current_rect_item)
+                return
+            
             scale_x =  self.pixmap.width() / self.scene.width()
             scale_y = self.pixmap.height() / self.scene.height()
 

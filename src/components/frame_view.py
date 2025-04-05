@@ -1,11 +1,13 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem
 from PySide6.QtGui import QFont, QIcon, QPixmap
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, Signal
 from windows.edit_frame_window import EditFrameWindow
 from components.frame import FramePresets
 from components.pixmap_viewer import PixmapViewer
 from components.captures_list import CapturesList
 class FrameView(QWidget):
+    frame_dropdown_added = Signal(bool)
+
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout()
@@ -69,7 +71,7 @@ class FrameView(QWidget):
     def removePresetFromList(self, index:int):
         self.frame_choose.removeItem(index)
 
-    def getPresets(self, dict):
+    def getPresets(self):
         self.presets_list = self.frame_presets.getPresets()
 
         self.frame_choose.clear()

@@ -1,4 +1,4 @@
-import os, faulthandler
+import os, faulthandler, time
 
 from icecream import ic
 from PySide6 import Shiboken
@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QListWidget,
                                QListWidgetItem, QPushButton, QSizePolicy,
                                QSpacerItem, QVBoxLayout, QWidget)
 
-from components.queue_worker import QueueWorker
+from components.queue_worker import QueueWorker, QueueHistory
 from components.queue_item_widget import QueueItemWidget
 
 
@@ -49,53 +49,50 @@ class Queue(QWidget):
         self.queue_worker.notify_current_work_number.connect(self._update_work_number)
         self.queue_worker.current_args.connect(self.setCurrentArgs)
 
+        self.queue_history = QueueHistory()
+
         self.current_args = {}
         # self.setStyleSheet("border: 1px solid red")  # for debugging
 
     def _update_work_number(self, num:int):
+        print(f'queue_gui: {num}')
         self.current_work_number = num    
 
 
     def add_to_list(self, item_data: list):
         list_item = QListWidgetItem()
-        item_widget = QueueItemWidget(item_data[0], item_data[1]["queue_num"])
+        item_widget = QueueItemWidget(item_data[0], item_data[1])
         list_item.setData(Qt.UserRole, item_data[1])
         list_item.setSizeHint(item_widget.sizeHint())
         self.list.addItem(list_item)
         self.list.setItemWidget(list_item, item_widget)
 
     def find_item_by_value(self, value):
-        ic()
         for index in range(self.list.count()):
-            ic(self.list.item(index), type(self.list.item(index)), index, self.list.count(), value)
-            faulthandler.enable()
-            ic()
-            list_item = self.list.item(index) # segmentation fault error in here 
+            list_item = self.list.item(index)
             if list_item is None:
                 print(f"Item at index {index} is None")
                 continue
 
-            item_data = list_item.data(Qt.UserRole)
-            if not item_data or not isinstance(item_data, dict):
-                print(f"Invalid data at index {index}: {item_data}")
-                continue         
-
-            if list_item.data(Qt.UserRole)["queue_num"] == value:
+            data = list_item.data(Qt.UserRole)
+            if data == value:
                 return list_item
         return None
     
     def update_progress_to_specific_queue_num(self, progress:str):
-        ic()
+        print(f'{progress}: {self.current_work_number} - {time.strftime('%-M:%-S.%f')}')
         current_queue_item = self.find_item_by_value(self.current_work_number)
         current_queue_item_widget = self.list.itemWidget(current_queue_item)
-        print(current_queue_item_widget)
+        if current_queue_item_widget is None:
+            ic('current_queue_item_widget is none')
         current_queue_item_widget.updateIcons(progress)
 
     def destroy_queue_item_and_retry_operations(self, work_number: int):
         # first, add the job back into the queue using the same args
         list_item_to_destroy = self.find_item_by_value(work_number)
 
-        self.queue_worker.addWork(list_item_to_destroy.data(Qt.UserRole)) # add the job back
+        args = self.queue_history.find_item_from_specific_queue_num(work_number)
+        self.queue_worker.addWork(args) # add the job back
 
         # destroy the widget
         list_item_to_destroy = self.find_item_by_value(work_number)
@@ -110,5 +107,4 @@ class Queue(QWidget):
                 widget_to_delete = None
 
     def setCurrentArgs(self, args: dict):
-        ic(args, os.path.basename(__file__))
         self.current_args = args

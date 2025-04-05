@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QCheckBox, QStyle, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QCheckBox, QStyle, QSizePolicy, QMessageBox
 from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtCore import Qt
 from icecream import ic
+from components.frame import FramePresets
 
 
 class OnlineUploader(QWidget):
@@ -30,6 +31,8 @@ class OnlineUploader(QWidget):
 
         layout.addWidget(label)
         layout.addWidget(self.gdrive_grp)
+
+        self.frame_presets = FramePresets()
 
     def gdrive(self):
         self.gdrive_grp = QWidget()
@@ -60,6 +63,25 @@ class OnlineUploader(QWidget):
         return self.is_upload_state
 
     def isUploadState(self, state):
+        isQRPlaceholderEmpty = self.frame_presets.isCurrentPresetQRPlaceholderEmpty()
+        if state == Qt.CheckState.Checked and isQRPlaceholderEmpty:
+            # Create a QMessageBox with Yes and No buttons
+            user_response = QMessageBox.question(
+                self,
+                "Warning",
+                "No QR Code Placeholder set, proceed?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No  # Default button
+            )
+
+            # Handle the user's response
+            if user_response == QMessageBox.Yes:
+                print("User chose to proceed.")
+            else:
+                print("User chose not to proceed.")
+                self.checkbox.setCheckState(Qt.CheckState.Unchecked)  # Uncheck the checkbox
+                return
+            
         if state == Qt.CheckState.Checked:
             self.is_upload_state = True
             # self.sign_in_btn.setEnabled(True)

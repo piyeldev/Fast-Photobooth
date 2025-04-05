@@ -78,20 +78,43 @@ class QueueItemWidget(QWidget):
         self.retry_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.retry_btn.clicked.connect(self.retry_operation)
 
+        self.icons_widget_layout.addWidget(self.loading_gif_placeholder_label)
+        self.icons_widget_layout.addWidget(self.drive_icon_placeholder_label)
+        self.icons_widget_layout.addWidget(self.printing_icon_placeholder_label)
+        self.icons_widget_layout.addWidget(self.finished_icon_placeholder_label)
+        self.icons_widget_layout.addWidget(self.error_icon_placeholder_label)
+        self.icons_widget_layout.addWidget(self.retry_btn)
+
+        self.loading_gif_placeholder_label.hide()
+        self.drive_icon_placeholder_label.hide()
+        self.printing_icon_placeholder_label.hide()
+        self.finished_icon_placeholder_label.hide()
+        self.error_icon_placeholder_label.hide()
+        self.retry_btn.hide()
+
+
+
+
     def updateIcons(self, progress:str):
         if progress == "Uploading":
-            self.icons_widget_layout.addWidget(self.loading_gif_placeholder_label)
-            self.icons_widget_layout.addWidget(self.drive_icon_placeholder_label)
+            print(f'uploading: {self.work_number}')
+            self.loading_gif_placeholder_label.show()
+            self.drive_icon_placeholder_label.show()
+            self.error_icon_placeholder_label.hide()
+            self.retry_btn.hide()
+
+            self.printing_icon_placeholder_label.hide()
+            self.finished_icon_placeholder_label.hide()
         elif "failed" in progress.lower() or "error" in progress.lower():
-            self.icons_widget_layout.removeWidget(self.loading_gif_placeholder_label)
-            self.loading_gif_placeholder_label.deleteLater()
-            self.icons_widget_layout.addWidget(self.error_icon_placeholder_label)
-            self.icons_widget_layout.addWidget(self.retry_btn)
+            print(f'failed: {self.work_number}')
+            self.loading_gif_placeholder_label.hide()
+            self.error_icon_placeholder_label.show()
+            self.retry_btn.show()
         else:
-            self.icons_widget_layout.removeWidget(self.loading_gif_placeholder_label)
-            self.loading_gif_placeholder_label.deleteLater()
-            self.icons_widget_layout.addWidget(self.printing_icon_placeholder_label)
-            self.icons_widget_layout.addWidget(self.finished_icon_placeholder_label)
+            print(f'finished: {self.work_number}')
+            self.loading_gif_placeholder_label.hide()
+            self.printing_icon_placeholder_label.show()
+            self.finished_icon_placeholder_label.show()
     
 
     def retry_operation(self):

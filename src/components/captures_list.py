@@ -2,11 +2,11 @@ from PySide6.QtWidgets import QWidget, QScrollArea, QHBoxLayout, QLabel, QVBoxLa
 from PySide6.QtCore import Qt, QSize, QTimer, Signal
 from PySide6.QtGui import QPixmap, QImage, QImageReader
 from components.picture_item import PictureItem
-import os
 from components.frame import FramePresets
 from components.image_overlayer import ImageOverlayer
 from components.pixmap_viewer import PixmapViewer
-import threading
+import threading, os
+from icecream import ic
 
 class CapturesList(QWidget):
     _instance = None
@@ -22,6 +22,8 @@ class CapturesList(QWidget):
             return
         
         super().__init__()
+
+        self.setStyleSheet("background-color: #2a2a2a")
 
         self.initialized = True
 
@@ -49,47 +51,55 @@ class CapturesList(QWidget):
         self.image_overlayer = ImageOverlayer()
         self.image_overlayer.overlay_image_made.connect(self.displayOverlayedImage)
 
+        self.previous_img_path = ''
+
     def displayOverlayedImage(self, path:str):
-        self.frame_presets.setCurrentOverlayedImage(path)
+        ic()
+        if len(self.pictures) == 0:
+            self.frame_presets.setCurrentOverlayedImage("")
+        else:
+            self.frame_presets.setCurrentOverlayedImage(path)
         self.pixmap_viewer.setPixmapToView(QPixmap(path))
 
     def addPicture(self, path:str):
-        print(f'captures_list: {path}')
+        print(self.pictures)
+        if path in self.pictures:
+            return
+        self.previous_img_path = path
+
+        if os.path.isfile(path):
+            print(f"true file: {path}")
 
         self.new_picture.emit(path)
+        
+        frame, placeholder_list = self.instantiateVariablesForOverlaying()
+        no_of_placeholders = len(placeholder_list)
+        
+        self.init_img(path, placeholder_list, frame, no_of_placeholders)
+    
+    def init_img(self, path, placeholder_list, frame, no_of_placeholders):
+        ic()
+        if len(self.pictures) >= no_of_placeholders:
+            QMessageBox(
+                QMessageBox.Information, 
+                "No. of pictures exceeded", 
+                "Number of pictures cannot exceed no. of placeholders for the frame. Try adding more placeholder if missed.", 
+                QMessageBox.Ok
+                ).exec()
+        else:
+            picture = PictureItem(path)
+            self.container_layout.addWidget(picture, Qt.AlignTop)
+            self.pictures.append(path)
+            ic(self.pictures)
+
+        self.threadOverlayImage(placeholder_list, frame)
+
+    def instantiateVariablesForOverlaying(self):
         current_index = self.frame_presets.getCurrentIndex()
         frame = self.frame_presets.getPresets()[current_index]["frame_path"]
         placeholder_list = self.frame_presets.getPresets()[current_index]["placeholders"]
-        no_of_placeholders = len(placeholder_list)
-        # this gives the information to the image parser who overlays the image
-        # the image parser notifies the frame view to change its pixmap to the one edited
-        def init_img():
-            if len(self.pictures) >= no_of_placeholders:
-                QMessageBox(
-                    QMessageBox.Information, 
-                    "No. of pictures exceeded", 
-                    "Number of pictures cannot exceed no. of placeholders for the frame. Try adding more placeholder if missed.", 
-                    QMessageBox.Ok
-                    ).exec()
-            else:
-                picture = PictureItem(path)
-                picture.setPixmapSize(QSize(214, 160))
-                self.container_layout.addWidget(picture, Qt.AlignTop)
-                self.pictures.append(path)
 
-                # FunctionThread(
-                #     func=self.image_overlayer.overlay_image,
-                #     args=(self.pictures, placeholder_list, frame),
-                #     interval=500
-                #     )
-                threading.Thread(
-                    target=self.image_overlayer.overlay_image, 
-                    args=(self.pictures, placeholder_list, frame), 
-                    daemon=True).start()
-
-
-
-        QTimer.singleShot(100, init_img)
+        return frame, placeholder_list
     
     def removeAll(self):
         for i in reversed(range(self.container_layout.count())):
@@ -99,12 +109,29 @@ class CapturesList(QWidget):
 
         current_index = self.frame_presets.getCurrentIndex()
         current_frame = self.frame_presets.getPresets()[current_index]["frame_path"]
+        self.frame_presets.setCurrentOverlayedImage("")
         self.pixmap_viewer.setPixmapToView(QPixmap(current_frame))
+        print(self.pictures)
         self.pictures.clear()
 
-    def removePicture(self, widget):
+    def threadOverlayImage(self, placeholder_list, frame):
+        threading.Thread(
+                target=self.image_overlayer.overlay_image, 
+                args=(self.pictures, placeholder_list, frame), 
+                daemon=True).start()
+        
+    def removePicture(self, widget, image_path: str):
         for i in range(self.container_layout.count()):
-            if self.container_layout.itemAt(i).widget() == widget:
+            if self.container_layout.itemAt(i) and self.container_layout.itemAt(i).widget() == widget:
+                print(f"DELETED: {i} - {widget}")
                 item = self.container_layout.takeAt(i)
                 item.widget().deleteLater()
+        
+        if image_path in self.pictures:
+            self.pictures.remove(image_path)
+
+        frame, placeholder_list = self.instantiateVariablesForOverlaying()
+
+        self.threadOverlayImage(placeholder_list, frame)
+
         return -1

@@ -29,38 +29,41 @@ class UploadWorker(QObject):
         creds = service_account.Credentials.from_service_account_file(self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
         return creds
     
-    def upload_and_overlay(self, img_path:str):
-        ic()
+    def upload_and_overlay(self, img_path:str, name: str):
+         
         current_index = self.frame_presets.getCurrentIndex()
         position = self.frame_presets.getPresets()[current_index]["qr_code_placeholder"]
-
+        ic(position)
         image_path = img_path
         image = Image.open(image_path)
-        file_link = self.upload_photo(image_path)
+        file_link = self.upload_photo(image_path, name)
         if not file_link:
             return
         qr_code = qrcode.make(file_link)
         qr_code = qr_code.convert(image.mode)
 
         x, y = int(position["x"]), int(position["y"])
-        qr_code = qr_code.resize((int(position["width"]), int(position["height"])))
+        qr_code = qr_code.resize((int(position["width"]), int(position["height"])), Image.Resampling.LANCZOS)
         box = (x, y, x + int(qr_code.width), y + int(qr_code.height))
         image.paste(qr_code, box)
         base, ext = os.path.splitext(image_path)
         new_img_path = f"{base}-wqr{ext}"
         image.save(new_img_path)
 
-        self.output.emit(new_img_path)
+        return new_img_path
 
-    def upload_photo(self, image_path:str, retries: int = 3):
-        ic()
+    def upload_photo(self, image_path:str, name: str, retries: int = 3):
+         
         try:
             creds = self.authenticate()
             service = build('drive', 'v3', credentials=creds)
 
+            file_name = os.path.basename(image_path)
+            new_file_name = f'{name}-{file_name}'
+
 
             file_metadata = {
-                'name': os.path.basename(image_path),
+                'name': new_file_name,
                 'parents': [self.PARENT_FOLDER_ID]
             }
 
@@ -85,16 +88,16 @@ class UploadWorker(QObject):
 
             # Generate the direct link to the file
             file_link = f"https://drive.google.com/uc?id={file_id}&export=download"
-            ic()
+             
             return file_link            
 
         except (google.auth.exceptions.GoogleAuthError, HttpError, FileNotFoundError) as e:
             if retries > 0:
                 print(f"Error occurred: {e}. Retrying... ({retries} retries left)")
-                ic()
-                return self.upload_photo(image_path, retries - 1)
+                 
+                return self.upload_photo(image_path, name, retries - 1)
             else:
-                ic()
+                 
                 err = f"Operation failed after multiple retries: {e}"
                 self.errorSig.emit(err)
 

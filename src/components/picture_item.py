@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QSizePolicy, QHBoxLayout, QPushButton
 from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtCore import QSize, Qt
+from icecream import ic
+import os
 
 class PictureItem(QWidget):
     def __init__(self, img_path:str):
@@ -10,11 +12,11 @@ class PictureItem(QWidget):
         self.layout.setStackingMode(QStackedLayout.StackAll)
         self.setLayout(self.layout)
 
-        print(f'{__name__}: {img_path}')
-        
-        self.image = QPixmap(img_path)
+        self.image_path = img_path
+        self.image = QPixmap(self.image_path)
         self.lbl = QLabel()
-        self.lbl.setPixmap(self.image)
+        self.lbl.setPixmap(self.image.scaled(QSize(214, 160), Qt.KeepAspectRatio))
+        print(self.lbl.pixmap().size())
         self.layout.addWidget(self.lbl)
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -42,13 +44,15 @@ class PictureItem(QWidget):
         delete_btn.clicked.connect(self.delete_self)
         overlay_layout.addWidget(delete_btn)
 
+        ic()
+
         
 
 
     def delete_self(self):
         from components.captures_list import CapturesList
         self.captures_list = CapturesList()
-        self.captures_list.removePicture(self)
+        self.captures_list.removePicture(self, self.image_path)
 
     def enterEvent(self, event):
         super().enterEvent(event)

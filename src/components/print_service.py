@@ -3,7 +3,7 @@ from PySide6.QtCore import QObject, Qt, QFile, QIODevice, QDir
 from PySide6.QtPdf import QPdfDocument, QPdfPageRenderer
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QImage, QPainter, QPageSize, QPageLayout
-import subprocess
+import subprocess, os
 from icecream import ic
 from pathlib import Path
 
@@ -16,21 +16,31 @@ class PrintService(QObject):
             subprocess.call(["lpoptions", "-p", printer_name, "-o", "MediaType=Plain"])
 
 
-    def call(self, image_path:str, printer_instance:QPrinter):
-        ic()
+    def call(self, image_path:str, printer_instance:QPrinter, is_print_to_pdf: bool):
         image = QImage(image_path)
         printer = printer_instance
+        print_to_pdf = is_print_to_pdf
 
-        self.set_photo_paper_type(printer.printerName(), True)
         
-        # for debugging
-        printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName(f"{Path.home()}Downloads/output.pdf")
+        if not printer.isValid():
+            print("printer is not valid")
+
+        # Print to PDF
+        print(printer.printerName(), print_to_pdf)
+        file_name = os.path.basename(image_path)
+        base, ext = os.path.splitext(file_name)
+        if print_to_pdf:
+            printer.setOutputFormat(QPrinter.PdfFormat)
+            printer.setOutputFileName(f"{Path.home()}/Downloads/{base}.pdf")
+        else:
+            printer.setOutputFormat(QPrinter.NativeFormat)
+        
+        self.set_photo_paper_type(printer.printerName(), True)
 
         # proceed to printing
         painter = QPainter()
         if not painter.begin(printer):
-            print("Error: Failed to begin painting on the printer.")
+            print("err: painter could not start")
             return
 
         # Calculate the scaling to fit the image within the printable area

@@ -1,13 +1,15 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtMultimedia import QCamera, QMediaDevices, QMediaFormat, QMediaCaptureSession, QImageCapture, QMediaRecorder
 from PySide6.QtMultimediaWidgets import QVideoWidget
-from PySide6.QtCore import QSize, QDir, QTimer, QUrl
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtCore import QSize, QDir, Signal, QUrl, QObject
+from PySide6.QtGui import QColor, QPalette, QImage
 from components.custom_print import print
 from time import strftime
 import os
+from icecream import ic
 
-class Camera:
+class Camera(QObject):
+    image_captured = Signal(str)
     def __init__(self):
         super().__init__()
         self.camera = None
@@ -90,7 +92,7 @@ class Camera:
             print("No recording is active")
 
     def capture_image(self):
-
+        ic()
         if not self.image_capture:
             raise RuntimeError("Image capture not initialized")
         
@@ -99,20 +101,26 @@ class Camera:
 
         if not os.path.exists(dir):
             os.mkdir(dir)
-        
-        save_file = dir + f'/NAME_{time_date}.jpg'
 
+        try:
+            self.image_capture.imageCaptured.disconnect()
+        except TypeError:
+            pass
+        
+        save_file = dir + f'/CAPTURED_{time_date}.jpg'
         self.image_capture.captureToFile(save_file)
-
-        
-        self.image_capture.imageCaptured.connect(lambda: print(f"CAPTURED! Saved {save_file}"))
-
         self.image_capture.errorOccurred.connect(lambda: print("error occured"))
+        self.image_capture.imageCaptured.connect(lambda id, image: self.handle_return_image_captured(id, image, save_file))
 
-        return save_file
-
+    def handle_return_image_captured(self, id, image: QImage, save_path):
+        if image.save(save_path):
+            print(f"Image saved successfully: {save_path}")
+        else:
+            print(f'Failed to save image to: {save_path}')
         
+        self.image_captured.emit(save_path)
 
+    
     def get_available_cameras(self):
         available_cameras = QMediaDevices.videoInputs()
         list_cameras = []

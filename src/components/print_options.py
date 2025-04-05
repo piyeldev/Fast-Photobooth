@@ -5,7 +5,7 @@ from PySide6.QtGui import (QDoubleValidator, QFont, QIcon, QPageLayout,
 from PySide6.QtPrintSupport import QPrinter
 from PySide6.QtWidgets import (QCheckBox, QComboBox, QFormLayout, QHBoxLayout,
                                QLabel, QLineEdit, QPushButton, QSizePolicy,
-                               QVBoxLayout, QWidget)
+                               QVBoxLayout, QWidget, QMessageBox)
 
 from components.acquire_name import NameForm
 from components.frame import FramePresets
@@ -14,6 +14,7 @@ from components.queue_worker import QueueWorker
 from components.upload_online import OnlineUploader
 from components.worker import WorkerThread
 
+import os
 
 class PrintOptions(QWidget):
     def __init__(self):
@@ -41,6 +42,11 @@ class PrintOptions(QWidget):
         
         # variables for other widgets
         self.frame_presets = FramePresets()
+        self.frame_presets.frame_preset_added.connect(lambda: process_btn.setDisabled(False))
+        self.frame_presets.frame_preset_deleted.connect(lambda: {
+            process_btn.setDisabled(True) if len(self.frame_presets.getPresets()) == 0 else process_btn.setDisabled(False)
+        })
+
         self.queue_worker = QueueWorker()
         self.online_uploader = OnlineUploader()
         self.name_form = NameForm()
@@ -55,6 +61,31 @@ class PrintOptions(QWidget):
         layout.addWidget(self.options_widget)
         layout.addWidget(process_btn)
 
+        # check if frame presets are empty, then deactivate the process button if so
+        frames = self.frame_presets.getPresets()
+        if len(frames) > 0:
+            pass
+        else:
+            process_btn.setDisabled(True)
+
+
+    def validate(self, path: str, sizeH: float, sizeW: float):
+        vars = {'Framed Image': path, 'Height': sizeH, 'Width': sizeW}
+        invalidItems = []
+        for varName, varValue in vars.items():
+            if varValue is None or varValue is "":
+                invalidItems.append(varName)
+        
+        if len(invalidItems) > 0:
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Warning)
+            msg_box.setWindowTitle("Empty Fields Error")
+            msg_box.setText(f"The following are empty: {', '.join(invalidItems)}. Please set before proceeding.")
+            msg_box.exec()
+            return False
+        else:
+            return True
+
     def process_to_queue_worker(self):
         path = self.frame_presets.getCurrentOverlayedImage()
         printer_name = self.printer_options.currentText()
@@ -63,24 +94,55 @@ class PrintOptions(QWidget):
         name = self.name_form.get_text()
         current_frame_index = self.frame_presets.getCurrentIndex()
         current_frame_name = self.frame_presets.getPresets()[current_frame_index]["name"]
-
         printer_instance = QPrinter(QPrinter.HighResolution)
-        printer_instance.setPrinterName(printer_name)
-        printer_instance.setPageOrientation(getattr(QPageLayout, orientation, None))
+        print_to_pdf = False
+        pageHeight = self.height_custom.text()
+        pageWidth = self.width_custom.text()
+
+        valid = self.validate(path, pageHeight, pageWidth)
+
+        if not valid:
+            return
+            
+        # print to pdf switch
+        if printer_name == "Print to PDF":
+            print_to_pdf = True
+            printer_instance.setPrinterName("")
+        else:
+            if printer_name:
+                printer_instance.setPrinterName(printer_name)
+            else:
+                printer_instance.setPrinterName("")
+
         
-        custom_size = QSizeF(float(self.width_custom.text()), float(self.height_custom.text()))
+        printer_instance.setPageOrientation(getattr(QPageLayout, orientation, None))
+        base, ext = os.path.splitext(os.path.basename(path))
+        docName = f'{name}-{base}'
+        printer_instance.setDocName(docName)
+        
+        custom_size = QSizeF(float(pageWidth), float(pageHeight))
         page_size = QPageSize(custom_size, QPageSize.Unit.Inch, "CustomSize")
         printer_instance.setPageSize(page_size)
+        
 
-        ic()
-        self.queue_worker.addWork({
-            "path_to_img": path, 
-            "printer_instance": printer_instance, 
-            "isUploadOnline": isUploadOnline, 
-            "name": name if name else "No Name", 
-            "size_str": f'{custom_size.width()}x{custom_size.height()}',
-            "frame_name": current_frame_name
-            })
+        if path:
+            self.queue_worker.addWork({
+                "path_to_img": path, 
+                "printer_instance": printer_instance, 
+                "isUploadOnline": isUploadOnline, 
+                "name": name if name else "No Name", 
+                "size_str": f'{custom_size.width()}x{custom_size.height()}',
+                "frame_name": current_frame_name,
+                "print_to_pdf": print_to_pdf
+                })
+        else:
+            QMessageBox(
+                QMessageBox.Warning,
+                "No Framed Image",
+                "There is currently no framed image. Please proceed to create one first.",
+                QMessageBox.Ok
+            ).exec()
+
 
 
     def options(self):
@@ -102,6 +164,7 @@ class PrintOptions(QWidget):
         
 
         self.printer_options = QComboBox()
+        self.printer_options.addItem("Print to PDF")
         self.printer_options.addItems(self.printer.getPrinterNames())
         # self.printer_options.currentIndexChanged.connect(self.switchPrinter)
 

@@ -57,3 +57,9 @@ class FramePresets(QObject):
 
     def setQrCodePlaceholder(self, index:int, placeholder:dict):
         self._presets[index]["qr_code_placeholder"] = placeholder
+
+    def isCurrentPresetQRPlaceholderEmpty(self):
+        current_preset_qr_placeholder = self.getPresets()[self.getCurrentIndex()]["qr_code_placeholder"]
+        if current_preset_qr_placeholder:
+            return False
+        return True
