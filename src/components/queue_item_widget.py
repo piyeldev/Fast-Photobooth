@@ -7,6 +7,8 @@ from PySide6.QtGui import QPixmap, QMovie
 from PySide6.QtCore import QSize, Qt, Signal
 from icecream import ic
 
+from components.worker import WorkerThread
+
 class QueueItemWidget(QWidget):
 
     def __init__(self, label:str, work_num):
@@ -22,19 +24,24 @@ class QueueItemWidget(QWidget):
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        label_widget = QLabel(label)
+        self.label_widget = QLabel(label)
         icons_widget = QWidget()
         icons_widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         self.icons_widget_layout = QHBoxLayout()
         icons_widget.setLayout(self.icons_widget_layout)
-        close_btn = QPushButton("×")
-        close_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        close_btn.setStyleSheet("color: red;")
-        close_btn.setFlat(True)
 
-        layout.addWidget(label_widget)
+        self.worker_thread = WorkerThread.getInstance()
+        
+        self.close_btn = QPushButton("×")
+        self.close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.close_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        self.close_btn.setStyleSheet("color: red;")
+        self.close_btn.setFlat(True)
+        self.close_btn.clicked.connect(self.cancel_operation)
+
+        layout.addWidget(self.label_widget)
         layout.addWidget(icons_widget)
-        layout.addWidget(close_btn)
+        layout.addWidget(self.close_btn)
 
         self._initIcons()
 
@@ -100,27 +107,57 @@ class QueueItemWidget(QWidget):
             print(f'uploading: {self.work_number}')
             self.loading_gif_placeholder_label.show()
             self.drive_icon_placeholder_label.show()
+
             self.error_icon_placeholder_label.hide()
+            self.printing_icon_placeholder_label.hide()
+            self.finished_icon_placeholder_label.hide()
             self.retry_btn.hide()
 
             self.printing_icon_placeholder_label.hide()
             self.finished_icon_placeholder_label.hide()
+
+            self.close_btn.setDisabled(True)
+            self.close_btn.setStyleSheet("color: white")
+
         elif "failed" in progress.lower() or "error" in progress.lower():
             print(f'failed: {self.work_number}')
             self.loading_gif_placeholder_label.hide()
             self.error_icon_placeholder_label.show()
             self.retry_btn.show()
+
+        elif "canceled" in progress.lower():
+            if not "canceled" in self.label_widget.text().lower():
+                self.label_widget.setText(self.label_widget.text() + " - CANCELED")
+
+            self.label_widget.setStyleSheet("color: rgba(255, 255, 255, 255)")
+            self.loading_gif_placeholder_label.hide()
+
         else:
             print(f'finished: {self.work_number}')
             self.loading_gif_placeholder_label.hide()
             self.printing_icon_placeholder_label.show()
             self.finished_icon_placeholder_label.show()
+
+            self.retry_btn.show()
+
+            self.close_btn.setDisabled(True)
+            self.close_btn.setStyleSheet("color: white")
     
 
     def retry_operation(self):
         from components.queue_gui import Queue
         queue = Queue()
         queue.destroy_queue_item_and_retry_operations(self.work_number)
-        pass
+
+    def cancel_operation(self):
+        self.worker_thread.cancelWork(self.work_number)
+        self.close_btn.setDisabled(True)
+        self.close_btn.setStyleSheet("color: white")
+
+        self.label_widget.setText(self.label_widget.text() + " - CANCELED")
+
+        self.label_widget.setStyleSheet("color: rgba(255, 255, 255, 175)")
+        
+        
 
 

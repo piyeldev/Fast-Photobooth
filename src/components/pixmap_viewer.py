@@ -35,7 +35,7 @@ class PixmapViewer(QGraphicsView):
         self.zoom_factor = 1.05
 
     def setPixmapToView(self, pixmap:QPixmap):
-        print(pixmap.size())
+        # print(pixmap.size())
         self.pixmap_item.setPixmap(pixmap)
         self.fitInView(self.pixmap_item, aspectRadioMode=Qt.KeepAspectRatio)
 

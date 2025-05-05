@@ -1,6 +1,7 @@
 from PySide6.QtCore import QObject, Signal
 from queue import Queue
 from components.worker import WorkerThread
+from components.custom_queue import CustomQueue
 from icecream import ic
 import os
 
@@ -22,16 +23,19 @@ class QueueWorker(QObject):
         super().__init__()
         self.initialized = True
 
-        self.work_queue = Queue()
+        self.work_queue = CustomQueue()
         self.worker_thread = WorkerThread(self.work_queue)
         self.worker_thread.progress.connect(self.setStatus)
-        self.worker_thread.queue_number_notifier.connect(lambda num: self.notify_current_work_number.emit(num))
+        self.worker_thread.queue_number_notifier.connect(self.sendNum)
         self.worker_thread.current_args_of_operation.connect(self.sendCurrentArgs)
         self.worker_thread.start()
 
         self.queue_history = QueueHistory()
 
         self.current_work_number = 0
+
+    def sendNum(self, num):
+        self.notify_current_work_number.emit(num)
 
     def sendCurrentArgs(self, args:dict):
         self.current_args.emit(args)
@@ -51,7 +55,7 @@ class QueueWorker(QObject):
 
     def stop_worker(self):
         self.worker_thread.stop()
-
+    
 
 class QueueHistory(QObject):
     _instance = None

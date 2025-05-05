@@ -154,7 +154,6 @@ class CameraView(QWidget):
         ic(1)
         ic()
         captures_list = CapturesList()
-        print(f'{__name__}: {img_path}')
         captures_list.addPicture(img_path)
 
     def record_vid_btn(self):

@@ -124,7 +124,7 @@ class EditFrameWindow(QWidget):
         name = preset["name"]
 
         self.frame_preset_dropdown.addItem(name)
-        print(name)
+        # print(name)
 
     def switchPreset(self, index):
         # switches the preset's related settings and configs
@@ -214,10 +214,8 @@ class EditFrameWindow(QWidget):
     
     def switchQRCodeMode(self, state):
         if state == Qt.CheckState.Checked:
-            print("yes")
             self.frame_viewport.set_is_qr_code_mode(True)
         else:
-            print("yes")
             self.frame_viewport.set_is_qr_code_mode(False)
 
     def switchFrameViewportImage(self, img_path:str):

@@ -18,3 +18,5 @@ A free and open-source photobooth software tool that helps small hobbyists!
 1. Grey out the buttons when no preset has been made before (Frame Editor)
 2. clear text in frame path button after pressing the delete button (frame editor) Bug appears when no frame is available anymore
 3. Clear image in viewport after deleting a preset first, then replace it with the available one or the one active in the frame preset dropdown. If frame preset is empty, remove the image in the viewport. (Frame Editor)
+
+# Development

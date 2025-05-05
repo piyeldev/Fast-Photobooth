@@ -16,7 +16,7 @@ class PictureItem(QWidget):
         self.image = QPixmap(self.image_path)
         self.lbl = QLabel()
         self.lbl.setPixmap(self.image.scaled(QSize(214, 160), Qt.KeepAspectRatio))
-        print(self.lbl.pixmap().size())
+        # print(self.lbl.pixmap().size())
         self.layout.addWidget(self.lbl)
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -25,7 +25,7 @@ class PictureItem(QWidget):
         self.overlay = QWidget(self)
         self.overlay.setStyleSheet("background-color: #99000000")
         self.overlay.setFixedSize(214, 160)
-        print(f'geometry: {self.overlay.geometry()}')
+        # print(f'geometry: {self.overlay.geometry()}')
         self.overlay.hide()
         self.overlay.setAutoFillBackground(True)
         self.layout.addWidget(self.overlay)

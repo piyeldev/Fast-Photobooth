@@ -62,13 +62,9 @@ class CapturesList(QWidget):
         self.pixmap_viewer.setPixmapToView(QPixmap(path))
 
     def addPicture(self, path:str):
-        print(self.pictures)
         if path in self.pictures:
             return
         self.previous_img_path = path
-
-        if os.path.isfile(path):
-            print(f"true file: {path}")
 
         self.new_picture.emit(path)
         
@@ -111,7 +107,6 @@ class CapturesList(QWidget):
         current_frame = self.frame_presets.getPresets()[current_index]["frame_path"]
         self.frame_presets.setCurrentOverlayedImage("")
         self.pixmap_viewer.setPixmapToView(QPixmap(current_frame))
-        print(self.pictures)
         self.pictures.clear()
 
     def threadOverlayImage(self, placeholder_list, frame):
@@ -123,7 +118,6 @@ class CapturesList(QWidget):
     def removePicture(self, widget, image_path: str):
         for i in range(self.container_layout.count()):
             if self.container_layout.itemAt(i) and self.container_layout.itemAt(i).widget() == widget:
-                print(f"DELETED: {i} - {widget}")
                 item = self.container_layout.takeAt(i)
                 item.widget().deleteLater()
         

@@ -30,7 +30,6 @@ class UploadWorker(QObject):
         return creds
     
     def upload_and_overlay(self, img_path:str, name: str):
-         
         current_index = self.frame_presets.getCurrentIndex()
         position = self.frame_presets.getPresets()[current_index]["qr_code_placeholder"]
         ic(position)
@@ -39,18 +38,21 @@ class UploadWorker(QObject):
         file_link = self.upload_photo(image_path, name)
         if not file_link:
             return
-        qr_code = qrcode.make(file_link)
-        qr_code = qr_code.convert(image.mode)
+        
+        if position:
+            qr_code = qrcode.make(file_link)
+            qr_code = qr_code.convert(image.mode)
 
-        x, y = int(position["x"]), int(position["y"])
-        qr_code = qr_code.resize((int(position["width"]), int(position["height"])), Image.Resampling.LANCZOS)
-        box = (x, y, x + int(qr_code.width), y + int(qr_code.height))
-        image.paste(qr_code, box)
-        base, ext = os.path.splitext(image_path)
-        new_img_path = f"{base}-wqr{ext}"
-        image.save(new_img_path)
-
-        return new_img_path
+            x, y = int(position["x"]), int(position["y"])
+            qr_code = qr_code.resize((int(position["width"]), int(position["height"])), Image.Resampling.LANCZOS)
+            box = (x, y, x + int(qr_code.width), y + int(qr_code.height))
+            image.paste(qr_code, box)
+            base, ext = os.path.splitext(image_path)
+            new_img_path = f"{base}-wqr{ext}"
+            image.save(new_img_path)
+            return new_img_path
+        else:
+            return image_path
 
     def upload_photo(self, image_path:str, name: str, retries: int = 3):
          

@@ -1,8 +1,9 @@
 from PySide6.QtCore import QThread, Signal
-import queue, os, traceback
+import os, traceback, queue
 from icecream import ic
 from components.upload_worker import UploadWorker
 from components.print_service import PrintService
+
 
 class WorkerThread(QThread):
     _instance = None
@@ -10,6 +11,14 @@ class WorkerThread(QThread):
     queue_number_notifier = Signal(int)
     current_args_of_operation = Signal(dict)
 
+    @classmethod
+    def getInstance(cls, work_queue=None):
+        if cls._instance is None:
+            if work_queue is None:
+                raise ValueError("work_queue must be provided for the first initialization")
+            cls._instance = cls(work_queue)
+        return cls._instance
+    
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super().__new__(cls, *args, **kwargs)
@@ -27,8 +36,15 @@ class WorkerThread(QThread):
         self.upload_worker.errorSig.connect(self.notify_error)
         self.print_service = PrintService()
         self.current_args = None
+        
+    def cancelWork(self, queue_num: int):
+        self.work_queue.cancel_task(queue_num)
 
+    def isWorkCanceled(self, queue_num: int):
+        return self.work_queue.isCanceled(queue_num)
 
+    
+    
     def run(self):
         try:
             while self._is_running:
@@ -41,9 +57,13 @@ class WorkerThread(QThread):
 
                 # Notify the GUI of the queue number
                 queue_num = self.args["queue_num"]
-                print(f'worker: {queue_num}')
                 self.queue_number_notifier.emit(queue_num)
                 self.current_args = self.args
+
+                if self.isWorkCanceled(queue_num):
+                    self.progress.emit(f'Task was canceled: {queue_num}')
+                    self.work_queue.task_done()
+                    continue
 
                 result = self.process_image(self.args)
 
@@ -61,7 +81,6 @@ class WorkerThread(QThread):
 
                 # Mark the current task as done
                 self.work_queue.task_done()
-                print("a new job will come")
 
 
         except Exception as e:

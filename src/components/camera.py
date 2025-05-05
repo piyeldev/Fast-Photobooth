@@ -44,7 +44,7 @@ class Camera(QObject):
         self.capture_session.setRecorder(self.media_recorder)
 
         self.set_resolution(self.resolution_var)
-        print(self.get_available_cameras())
+        # print(self.get_available_cameras())
         # Start the camera
         self.camera.start()
 
@@ -69,10 +69,10 @@ class Camera(QObject):
         self.media_recorder.setMediaFormat(media_format)
         self.media_recorder.record()
 
-        print(f"Recording started: {save_file}")
+        # print(f"Recording started: {save_file}")
 
         # Connect signals for feedback
-        self.media_recorder.errorOccurred.connect(lambda error, errorString: print(f"Error occurred during recording: {errorString}"))
+        # self.media_recorder.errorOccurred.connect(lambda error, errorString: print(f"Error occurred during recording: {errorString}"))
         return save_file
 
     def isRecording(self):
@@ -102,23 +102,26 @@ class Camera(QObject):
         if not os.path.exists(dir):
             os.mkdir(dir)
 
-        try:
-            self.image_capture.imageCaptured.disconnect()
-        except TypeError:
-            pass
+        # try:
+        #     self.image_capture.imageCaptured.disconnect(self.handle_return_image_captured)
+        # except TypeError:
+        #     pass
         
         save_file = dir + f'/CAPTURED_{time_date}.jpg'
         self.image_capture.captureToFile(save_file)
         self.image_capture.errorOccurred.connect(lambda: print("error occured"))
         self.image_capture.imageCaptured.connect(lambda id, image: self.handle_return_image_captured(id, image, save_file))
 
-    def handle_return_image_captured(self, id, image: QImage, save_path):
+    def handle_return_image_captured(self, id: int, image: QImage, save_path):
         if image.save(save_path):
             print(f"Image saved successfully: {save_path}")
         else:
             print(f'Failed to save image to: {save_path}')
         
         self.image_captured.emit(save_path)
+
+        self.image_capture.imageCaptured.disconnect(self.handle_return_image_captured)
+
 
     
     def get_available_cameras(self):

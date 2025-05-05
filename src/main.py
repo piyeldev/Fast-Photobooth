@@ -4,9 +4,6 @@ from windows.main_window import MainWindow
 from PySide6.QtGui import QPalette, QColor, QFont, QFontDatabase
 from components.queue_worker import QueueWorker
 
-print(os.getcwd())
-
-
 def set_dark_mode(app):
     palette = QPalette()
     palette.setColor(QPalette.Window, QColor(53, 53, 53))
@@ -32,7 +29,7 @@ def load_fonts():
         for font_file in poppins_font_files:
             font_id = QFontDatabase.addApplicationFont(f'{poppins_dir}/{font_file}')
             if font_id == -1:
-                print(f"err: font failed to load {font_file}:{font_id}")
+                raise FileNotFoundError(f"err: font failed to load {font_file}:{font_id}")
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     """

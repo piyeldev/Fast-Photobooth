@@ -14,7 +14,7 @@ class ImageOverlayer(QObject):
         self.pixmap_viewer = PixmapViewer()
         self.home_dir = os.path.expanduser("~")
         self.save_path = self.home_dir + "/Pictures/FastPhotoCaptures/Processed"
-        print(self.save_path)
+        # print(self.save_path)
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
         

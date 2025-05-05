@@ -74,7 +74,7 @@ class FrameViewport(QGraphicsView):
                 placeholder["width"], 
                 placeholder["height"]
                 )
-            print(f'after: real values: {placeholder} adjusted values: {adjusted_rect}')
+            # print(f'after: real values: {placeholder} adjusted values: {adjusted_rect}')
             self.rectangles.append(QGraphicsRectItem(adjusted_rect))
 
         # and add them to the scene
@@ -166,7 +166,7 @@ class FrameViewport(QGraphicsView):
                     "height": scaled_rect.height(),
                 }
                 self.qr_code_placeholder_added.emit(qr_code_placeholder_dict)
-                print(f"QR Code Box: {scaled_rect}")
+                # print(f"QR Code Box: {scaled_rect}")
             else:
                 self.rectangles.append(self.current_rect_item)
                 placeholder_dict = {
@@ -176,7 +176,7 @@ class FrameViewport(QGraphicsView):
                     "width": scaled_rect.width(), 
                     "height": scaled_rect.height()
                     }
-                print(f"before: Rectangle coordinates relative to the image (real resolution): {placeholder_dict}")
+                # print(f"before: Rectangle coordinates relative to the image (real resolution): {placeholder_dict}")
                 self.placeholder_added.emit(placeholder_dict)
             self.start_point = None
             self.current_rect_item = None

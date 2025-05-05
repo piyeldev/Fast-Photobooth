@@ -21,12 +21,10 @@ class PrintService(QObject):
         printer = printer_instance
         print_to_pdf = is_print_to_pdf
 
-        
-        if not printer.isValid():
-            print("printer is not valid")
+        # if not printer.isValid():
+        #     print("printer is not valid")
 
         # Print to PDF
-        print(printer.printerName(), print_to_pdf)
         file_name = os.path.basename(image_path)
         base, ext = os.path.splitext(file_name)
         if print_to_pdf:
@@ -55,7 +53,6 @@ class PrintService(QObject):
         # Draw the image on the printer's painter
         painter.drawImage(0, 0, image)
         painter.end()
-        print("Printing completed successfully.")
     
         
         

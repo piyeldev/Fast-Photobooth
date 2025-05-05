@@ -83,7 +83,7 @@ class FrameView(QWidget):
     def changeFrames(self, index):
         self.captures_list.removeAll()
         path = self.frame_presets.getPresets()[index]["frame_path"]
-        print(self.frame_presets.getPresets()[index])
+        # print(self.frame_presets.getPresets()[index])
         if path != "":
             self.frame_widget.setPixmapToView(QPixmap(path))
         else:

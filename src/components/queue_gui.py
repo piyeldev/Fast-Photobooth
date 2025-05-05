@@ -55,7 +55,6 @@ class Queue(QWidget):
         # self.setStyleSheet("border: 1px solid red")  # for debugging
 
     def _update_work_number(self, num:int):
-        print(f'queue_gui: {num}')
         self.current_work_number = num    
 
 
@@ -71,7 +70,6 @@ class Queue(QWidget):
         for index in range(self.list.count()):
             list_item = self.list.item(index)
             if list_item is None:
-                print(f"Item at index {index} is None")
                 continue
 
             data = list_item.data(Qt.UserRole)
@@ -80,7 +78,7 @@ class Queue(QWidget):
         return None
     
     def update_progress_to_specific_queue_num(self, progress:str):
-        print(f'{progress}: {self.current_work_number} - {time.strftime('%-M:%-S.%f')}')
+        # print(f'{progress}: {self.current_work_number} - {time.strftime('%-M:%-S.%f')}')
         current_queue_item = self.find_item_by_value(self.current_work_number)
         current_queue_item_widget = self.list.itemWidget(current_queue_item)
         if current_queue_item_widget is None:
