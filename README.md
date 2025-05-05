@@ -20,3 +20,31 @@ A free and open-source photobooth software tool that helps small hobbyists!
 3. Clear image in viewport after deleting a preset first, then replace it with the available one or the one active in the frame preset dropdown. If frame preset is empty, remove the image in the viewport. (Frame Editor)
 
 # Development
+1. Clone the repository
+```
+git clone https://github.com/piyeldev/Fast-Photo.git
+```
+
+2. Create virtual environment
+
+```
+cd Fast-Photo
+python -m venv .venv
+```
+3. Install packages
+```
+pip install -r requirements.txt
+```
+4. Run program
+```
+python main.py
+```
+If you're in linux:
+```
+QT_QPA_PLATFORM=xcb python main.py
+```
+or put this in your ~/.bashrc or ~/.zshrc
+```
+export QT_QPA_PLATFORM=xcb
+```
+this will fix flickering of ui in wayland (linux)
