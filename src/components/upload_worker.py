@@ -35,9 +35,6 @@ class UploadWorker(QObject):
         super().__init__()
 
         self.initialized = True
-        self.SCOPES = ['https://www.googleapis.com/auth/drive']
-        self.CREDENTIALS_FILE = '../assets/credentials/credentials.json'
-        self.TOKEN_FILE = "token.json"
 
         self.frame_presets = FramePresets()
         self.authenticator = Authenticator()

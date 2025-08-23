@@ -20,7 +20,7 @@ class Authenticator(QObject):
         super().__init__()
         self.initialized = True
         self.SCOPES = ['https://www.googleapis.com/auth/drive']
-        self.CREDENTIALS_FILE = '../assets/credentials/credentials.json'
+        self.CREDENTIALS_FILE = '../assets/creds/credentials.json'
         self.TOKEN_FILE = "token.json"
 
     def browser_login(self):
