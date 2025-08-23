@@ -40,7 +40,7 @@ class CapturesView(QWidget):
         select_all_and_delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         select_all_and_delete_btn.setIcon(QPixmap("../assets/icons/trash_icon.png"))
         select_all_and_delete_btn.setFont(QFont("Poppins", 10, QFont.Weight.Medium))
-        select_all_and_delete_btn.setStyleSheet("background-color: #1fb141; padding: 4px 10px; border-radius: 8px;")
+        select_all_and_delete_btn.setStyleSheet("padding: 4px 10px; border-radius: 8px;")
 
         select_all_and_delete_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 

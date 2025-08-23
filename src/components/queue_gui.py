@@ -52,7 +52,6 @@ class Queue(QWidget):
         self.queue_history = QueueHistory()
 
         self.current_args = {}
-        # self.setStyleSheet("border: 1px solid red")  # for debugging
 
     def _update_work_number(self, num:int):
         self.current_work_number = num    
@@ -82,8 +81,8 @@ class Queue(QWidget):
         current_queue_item = self.find_item_by_value(self.current_work_number)
         current_queue_item_widget = self.list.itemWidget(current_queue_item)
         if current_queue_item_widget is None:
-            ic('current_queue_item_widget is none')
-        current_queue_item_widget.updateIcons(progress)
+            # ic('current_queue_item_widget is none')
+            current_queue_item_widget.updateIcons(progress)
 
     def destroy_queue_item_and_retry_operations(self, work_number: int):
         # first, add the job back into the queue using the same args

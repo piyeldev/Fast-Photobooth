@@ -1,8 +1,21 @@
+import os, sys, sysconfig
+
+# PySide6 installation dir to DLL search paths
+d = sysconfig.get_path("purelib")  # e.g. C:\...\Lib\site‑packages
+os.add_dll_directory(os.path.join(d, "PySide6"))
+
 from PySide6.QtWidgets import QApplication, QMessageBox
-import sys, os, traceback
+from PySide6.QtCore import qInstallMessageHandler, QtMsgType, QLoggingCategory
+import traceback
 from windows.main_window import MainWindow
 from PySide6.QtGui import QPalette, QColor, QFont, QFontDatabase
 from components.queue_worker import QueueWorker
+
+def message_handler(msg_type, context, message):
+    if "Corrupt JPEG data" in message:
+        return  # ignore these warnings
+    # otherwise fallback to default handling
+    print(message)
 
 def set_dark_mode(app):
     palette = QPalette()
@@ -50,7 +63,6 @@ sys.excepthook = handle_exception
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    set_dark_mode(app)
 
     # set font
     load_fonts()
@@ -60,6 +72,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.showMaximized()
 
+    qInstallMessageHandler(message_handler)
     queue_worker = QueueWorker()
     app.aboutToQuit.connect(queue_worker.stop_worker)
     app.exec()

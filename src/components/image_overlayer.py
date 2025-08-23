@@ -19,7 +19,7 @@ class ImageOverlayer(QObject):
             os.makedirs(self.save_path)
         
     def overlay_image(self, image_paths: list, coords:list, frame:str):
-        ic()
+        # ic()
         # Load the photostrip frame (with transparency)
         frame = Image.open(frame).convert("RGBA")
         background = Image.new("RGBA", frame.size, (255, 255, 255, 0))
@@ -36,7 +36,7 @@ class ImageOverlayer(QObject):
 
             width_ratio = target_width / original_width
             height_ratio = target_height / original_height
-            scaling_factor = min(width_ratio, height_ratio)
+            scaling_factor = max(width_ratio, height_ratio)
 
             new_width = int(original_width * scaling_factor)
             new_height = int(original_height * scaling_factor)

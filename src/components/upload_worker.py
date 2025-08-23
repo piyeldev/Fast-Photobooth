@@ -1,13 +1,19 @@
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 import google.auth.exceptions
+from PIL import Image
+from icecream import ic
 import os
 
 from PySide6.QtCore import QObject, Signal
-from PIL import Image
+from PySide6.QtWidgets import QMessageBox
 from components.frame import FramePresets
-from icecream import ic
+from components.authenticator import Authenticator
+
 
 import qrcode
 
@@ -15,27 +21,39 @@ import qrcode
 class UploadWorker(QObject):
     output = Signal(str)
     errorSig = Signal(str)
+    _instance = None
+    
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
     
     def __init__(self):
+        if hasattr(self, "initialized") and self.initialized:
+            return
+        
         super().__init__()
 
+        self.initialized = True
         self.SCOPES = ['https://www.googleapis.com/auth/drive']
-        self.SERVICE_ACCOUNT_FILE = 'creds/service_account.json'
-        self.PARENT_FOLDER_ID = "1htmtVcGUaz1asid-ABB52arrVDWPRkXa"
+        self.CREDENTIALS_FILE = '../assets/credentials/credentials.json'
+        self.TOKEN_FILE = "token.json"
 
         self.frame_presets = FramePresets()
+        self.authenticator = Authenticator()
 
-    def authenticate(self):
-        creds = service_account.Credentials.from_service_account_file(self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
-        return creds
+        # TASK: try to authenticate in init when already signed in, 
+        # but if theres no login token, then let user sign in using button
+        # put user gmail when already signed in
+
     
-    def upload_and_overlay(self, img_path:str, name: str):
+    
+    def upload_and_overlay(self, img_path:str, name: str, drive_link: str):
         current_index = self.frame_presets.getCurrentIndex()
         position = self.frame_presets.getPresets()[current_index]["qr_code_placeholder"]
-        ic(position)
         image_path = img_path
         image = Image.open(image_path)
-        file_link = self.upload_photo(image_path, name)
+        file_link = self.upload_photo(image_path, name, drive_link)
         if not file_link:
             return
         
@@ -53,24 +71,15 @@ class UploadWorker(QObject):
             return new_img_path
         else:
             return image_path
-
-    def upload_photo(self, image_path:str, name: str, retries: int = 3):
-         
+        
+    def upload_photo(self, image_path:str, name: str, drive_id: str, retries: int = 3):
         try:
-            creds = self.authenticate()
-            service = build('drive', 'v3', credentials=creds)
-
-            file_name = os.path.basename(image_path)
-            new_file_name = f'{name}-{file_name}'
-
-
-            file_metadata = {
-                'name': new_file_name,
-                'parents': [self.PARENT_FOLDER_ID]
-            }
+            self.service = self.authenticator.get_service_var()
+            file_name = f'{name}-{os.path.basename(image_path)}'
+            file_metadata = {"name": file_name, "parents": [drive_id]}
 
             # Upload the file
-            file = service.files().create(
+            file = self.service.files().create(
                 body=file_metadata,
                 media_body=image_path,
                 fields="id"  # Only requesting the file ID in response
@@ -83,7 +92,7 @@ class UploadWorker(QObject):
                 'type': 'anyone',
                 'role': 'reader'
             }
-            service.permissions().create(
+            self.service.permissions().create(
                 fileId=file_id,
                 body=permission
             ).execute()
@@ -97,7 +106,7 @@ class UploadWorker(QObject):
             if retries > 0:
                 print(f"Error occurred: {e}. Retrying... ({retries} retries left)")
                  
-                return self.upload_photo(image_path, name, retries - 1)
+                return self.upload_photo(image_path, name, drive_id, retries - 1)
             else:
                  
                 err = f"Operation failed after multiple retries: {e}"

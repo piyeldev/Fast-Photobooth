@@ -66,8 +66,23 @@ class CameraView(QWidget):
         self.toolbar_widget_layout.addWidget(self.detach_btn, alignment=Qt.AlignRight)
 
         self.choose_camera_dropdown()
+        self.choose_res_dropdown()
 
         
+    def choose_res_dropdown(self):
+        supported_resolutions = self.camera_controller.get_supported_formats()
+        self.res_dropdown = QComboBox()
+
+        self.res_dropdown.addItems(([item[0] for item in supported_resolutions]))
+        self.toolbar_widget_layout.addWidget(self.res_dropdown)
+
+        self.res_dropdown.currentIndexChanged.connect(self.res_change)
+
+    def res_change(self, index):
+        print(index)
+        self.camera_controller.set_resolution_and_restart(index)
+
+
     def choose_camera_dropdown(self):
         # camera list dropdown
         self.camera_list = QComboBox()
@@ -146,13 +161,11 @@ class CameraView(QWidget):
         self.take_pic_btn_widg.clicked.connect(self.capture_img)
     
     def capture_img(self):
-        ic()
+        # # ic()
         self.camera_controller.capture_image()
 
     def display_to_captures_list(self, img_path: str):
-
-        ic(1)
-        ic()
+        print("display "+img_path)
         captures_list = CapturesList()
         captures_list.addPicture(img_path)
 

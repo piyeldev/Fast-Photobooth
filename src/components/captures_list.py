@@ -51,10 +51,8 @@ class CapturesList(QWidget):
         self.image_overlayer = ImageOverlayer()
         self.image_overlayer.overlay_image_made.connect(self.displayOverlayedImage)
 
-        self.previous_img_path = ''
-
     def displayOverlayedImage(self, path:str):
-        ic()
+        # # ic()
         if len(self.pictures) == 0:
             self.frame_presets.setCurrentOverlayedImage("")
         else:
@@ -62,11 +60,9 @@ class CapturesList(QWidget):
         self.pixmap_viewer.setPixmapToView(QPixmap(path))
 
     def addPicture(self, path:str):
+        print("addPicture " + path)
         if path in self.pictures:
             return
-        self.previous_img_path = path
-
-        self.new_picture.emit(path)
         
         frame, placeholder_list = self.instantiateVariablesForOverlaying()
         no_of_placeholders = len(placeholder_list)
@@ -74,7 +70,8 @@ class CapturesList(QWidget):
         self.init_img(path, placeholder_list, frame, no_of_placeholders)
     
     def init_img(self, path, placeholder_list, frame, no_of_placeholders):
-        ic()
+        print("init_img " + path)
+        # ic()
         if len(self.pictures) >= no_of_placeholders:
             QMessageBox(
                 QMessageBox.Information, 
@@ -86,9 +83,12 @@ class CapturesList(QWidget):
             picture = PictureItem(path)
             self.container_layout.addWidget(picture, Qt.AlignTop)
             self.pictures.append(path)
-            ic(self.pictures)
+            print(f'PICTURES: {self.pictures}')
 
-        self.threadOverlayImage(placeholder_list, frame)
+            self.threadOverlayImage(placeholder_list, frame, self.pictures)
+
+            # ic(self.pictures)
+
 
     def instantiateVariablesForOverlaying(self):
         current_index = self.frame_presets.getCurrentIndex()
@@ -109,10 +109,10 @@ class CapturesList(QWidget):
         self.pixmap_viewer.setPixmapToView(QPixmap(current_frame))
         self.pictures.clear()
 
-    def threadOverlayImage(self, placeholder_list, frame):
+    def threadOverlayImage(self, placeholder_list, frame, pictures):
         threading.Thread(
                 target=self.image_overlayer.overlay_image, 
-                args=(self.pictures, placeholder_list, frame), 
+                args=(pictures, placeholder_list, frame), 
                 daemon=True).start()
         
     def removePicture(self, widget, image_path: str):

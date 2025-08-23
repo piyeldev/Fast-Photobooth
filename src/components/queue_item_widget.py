@@ -13,7 +13,6 @@ class QueueItemWidget(QWidget):
 
     def __init__(self, label:str, work_num):
         super().__init__()
-        self.setStyleSheet("background-color: #242424;")
         
 
         # initialize variables ============

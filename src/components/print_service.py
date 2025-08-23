@@ -33,7 +33,7 @@ class PrintService(QObject):
         else:
             printer.setOutputFormat(QPrinter.NativeFormat)
         
-        self.set_photo_paper_type(printer.printerName(), True)
+        # self.set_photo_paper_type(printer.printerName(), True)
 
         # proceed to printing
         painter = QPainter()
@@ -48,7 +48,7 @@ class PrintService(QObject):
         painter.setViewport(rect.x(), rect.y(), size.width(), size.height())
         painter.setWindow(image.rect())
 
-        self.set_photo_paper_type(printer.printerName(), False)
+        # self.set_photo_paper_type(printer.printerName(), False)
 
         # Draw the image on the printer's painter
         painter.drawImage(0, 0, image)

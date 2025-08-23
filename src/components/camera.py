@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout
-from PySide6.QtMultimedia import QCamera, QMediaDevices, QMediaFormat, QMediaCaptureSession, QImageCapture, QMediaRecorder
+from PySide6.QtMultimedia import QCamera, QMediaDevices, QMediaFormat, QMediaCaptureSession, QImageCapture, QMediaRecorder, QVideoFrameFormat
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtCore import QSize, QDir, Signal, QUrl, QObject
-from PySide6.QtGui import QColor, QPalette, QImage
+from PySide6.QtGui import QColor, QPalette, QImage, QPixelFormat
 from components.custom_print import print
 from time import strftime
 import os
@@ -22,30 +22,68 @@ class Camera(QObject):
         available_cameras = QMediaDevices.videoInputs()
         if not available_cameras:
             raise RuntimeError("No cameras available")
+        
 
-        # Create the camera and capture session
+        # pick first camera
         self.camera = QCamera(available_cameras[0])
+
+        # setup capture session
         self.capture_session = QMediaCaptureSession()
         self.capture_session.setCamera(self.camera)
-
-        self.video_widget_var = video_widget
-        self.resolution_var = resolution
+        self.capture_session.setVideoOutput(video_widget)
 
 
-        # Set the video output to the QVideoWidget
-        self.capture_session.setVideoOutput(self.video_widget_var)
+        # image capture + recorder
+        self.image_capture = QImageCapture()
+        self.media_recorder = QMediaRecorder()
 
-        # Create an image capture object
-        self.image_capture = QImageCapture(self.camera)
         self.capture_session.setImageCapture(self.image_capture)
-
-        # Create a media recorder for video
-        self.media_recorder = QMediaRecorder(self.camera)
         self.capture_session.setRecorder(self.media_recorder)
 
-        self.set_resolution(self.resolution_var)
-        # print(self.get_available_cameras())
+        # Debug error signals
+        self.camera.errorOccurred.connect(
+            lambda error, errorString: print(f"[Camera Error] {errorString}")
+        )
+        self.media_recorder.errorOccurred.connect(
+            lambda error, errorString: print(f"[Recorder Error] {errorString}")
+        )
+        self.image_capture.errorOccurred.connect(
+            lambda id, error, errorString: print(f"[ImageCapture Error] {errorString}")
+        )
+
+        # REMINDER: if camera change, then change the supported format
+        supported_formats = self.get_supported_formats()
+        if supported_formats:
+            self.camera.setCameraFormat(supported_formats[0][1])
+
         # Start the camera
+        self.camera.start()
+
+    def get_supported_formats(self):
+        supported_formats = self.camera.cameraDevice().videoFormats()
+
+        res_and_formats_list = []
+        for res in supported_formats:
+            resolution = res.resolution()
+            max_frame_rate = res.maxFrameRate()
+
+            if res.pixelFormat() is QVideoFrameFormat.PixelFormat.Format_Jpeg:
+                item = [f'{resolution.width()} x {resolution.height()} @{max_frame_rate}fps', res]
+                if not item in res_and_formats_list:
+                    res_and_formats_list.append(item)
+            
+        # for res, format in res_and_formats_list:
+        #     print(f'{res} {format.pixelFormat()}')
+        return res_and_formats_list
+
+    def set_resolution_and_restart(self, index):
+        self.camera.stop()
+
+        supported_formats = self.get_supported_formats()
+        print(self.camera.isActive())
+        if supported_formats:
+            self.camera.setCameraFormat(supported_formats[index][1])
+            print(supported_formats[index][1])
         self.camera.start()
 
     def start_recording(self):
@@ -92,7 +130,7 @@ class Camera(QObject):
             print("No recording is active")
 
     def capture_image(self):
-        ic()
+        # # ic()
         if not self.image_capture:
             raise RuntimeError("Image capture not initialized")
         
@@ -101,11 +139,6 @@ class Camera(QObject):
 
         if not os.path.exists(dir):
             os.mkdir(dir)
-
-        # try:
-        #     self.image_capture.imageCaptured.disconnect(self.handle_return_image_captured)
-        # except TypeError:
-        #     pass
         
         save_file = dir + f'/CAPTURED_{time_date}.jpg'
         self.image_capture.captureToFile(save_file)
@@ -120,7 +153,7 @@ class Camera(QObject):
         
         self.image_captured.emit(save_path)
 
-        self.image_capture.imageCaptured.disconnect(self.handle_return_image_captured)
+        self.image_capture.imageCaptured.disconnect()
 
 
     
@@ -150,13 +183,4 @@ class Camera(QObject):
 
         self.camera.start()
         
-    def set_resolution(self, resolution:QSize):
-        supported_formats = self.camera.cameraDevice().videoFormats()
-        for format in supported_formats:
-            res = format.resolution()
-            if (resolution == res):
-                print(f'resolution {resolution.width()}x{resolution.height()} is available')
-                self.camera.setCameraFormat(format)
-                return
-                
-        raise RuntimeError(f"Resolution {resolution.width}x{resolution.height} not supported by this camera")
+    

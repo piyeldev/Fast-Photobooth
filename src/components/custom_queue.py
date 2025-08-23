@@ -15,13 +15,13 @@ class CustomQueue(queue.Queue):
         return False
     
     def get(self, *args, **kwargs):
-        """Override get to skip canceled tasks."""
-        while not self.empty():
-            task = super().get(*args, **kwargs)
-            if task["queue_num"] not in self.canceled_tasks:
-                return task
-            else:
-                # print(f"CUSTOM_QUEUE: Task {task["queue_num"]} is canceled")
+        while True:
+            try:
+                task = super().get(*args, **kwargs)  # blocking
+            except queue.Empty:
+                raise
+            if task.get("queue_num") in self.canceled_tasks:
                 self.task_done()
-        raise queue.Empty
+                continue
+            return task
 

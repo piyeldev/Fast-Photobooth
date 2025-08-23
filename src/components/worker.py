@@ -85,7 +85,7 @@ class WorkerThread(QThread):
 
         except Exception as e:
             traceback.print_exception(type(e), e, e.__traceback__)
-            ic(e, os.path.basename(__file__))
+            # ic(e, os.path.basename(__file__))
 
     def process_image(self, args):
         isUploadOnline = args["isUploadOnline"]
@@ -93,6 +93,7 @@ class WorkerThread(QThread):
         img_path = args["path_to_img"]
         name = args["name"]
         is_print_to_pdf = args["print_to_pdf"]
+        drive_link = args["drive_link"]
 
         # Initiation of Uploading and/or printing tasks
         if isUploadOnline:
@@ -100,7 +101,7 @@ class WorkerThread(QThread):
             if not img_path:
                 print('img_path is None')
                 return
-            processed_img_path = self.upload_worker.upload_and_overlay(img_path, name)
+            processed_img_path = self.upload_worker.upload_and_overlay(img_path, name, drive_link)
             
             return processed_img_path
         else:

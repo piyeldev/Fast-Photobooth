@@ -69,8 +69,8 @@ class PrintOptions(QWidget):
             process_btn.setDisabled(True)
 
 
-    def validate(self, path: str, sizeH: float, sizeW: float):
-        vars = {'Framed Image': path, 'Height': sizeH, 'Width': sizeW}
+    def validate(self, path: str, sizeH: float, sizeW: float, drive_link: str):
+        vars = {'Framed Image': path, 'Height': sizeH, 'Width': sizeW, 'Drive Link': drive_link}
         invalidItems = []
         for varName, varValue in vars.items():
             if varValue is None or varValue is "":
@@ -80,7 +80,7 @@ class PrintOptions(QWidget):
             msg_box = QMessageBox()
             msg_box.setIcon(QMessageBox.Warning)
             msg_box.setWindowTitle("Empty Fields Error")
-            msg_box.setText(f"The following are empty: {', '.join(invalidItems)}. Please set before proceeding.")
+            msg_box.setText(f"The following are empty or invalid: {', '.join(invalidItems)}. Please set before proceeding.")
             msg_box.exec()
             return False
         else:
@@ -98,8 +98,9 @@ class PrintOptions(QWidget):
         print_to_pdf = False
         pageHeight = self.height_custom.text()
         pageWidth = self.width_custom.text()
+        drive_link = self.online_uploader.get_drive_folder_id()
 
-        valid = self.validate(path, pageHeight, pageWidth)
+        valid = self.validate(path, pageHeight, pageWidth, drive_link)
 
         if not valid:
             return
@@ -133,7 +134,8 @@ class PrintOptions(QWidget):
                 "name": name if name else "No Name", 
                 "size_str": f'{custom_size.width()}x{custom_size.height()}',
                 "frame_name": current_frame_name,
-                "print_to_pdf": print_to_pdf
+                "print_to_pdf": print_to_pdf,
+                "drive_link": drive_link
                 })
         else:
             QMessageBox(

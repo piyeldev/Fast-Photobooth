@@ -44,7 +44,7 @@ class PictureItem(QWidget):
         delete_btn.clicked.connect(self.delete_self)
         overlay_layout.addWidget(delete_btn)
 
-        ic()
+        # ic()
 
         
 
