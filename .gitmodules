@@ -1,0 +1,3 @@
+[submodule "assets/credentials"]
+	path = assets/credentials
+	url = https://github.com/piyeldev/fastphoto-secrets
