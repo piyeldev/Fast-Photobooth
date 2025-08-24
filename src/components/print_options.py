@@ -14,6 +14,7 @@ from components.queue_worker import QueueWorker
 from components.upload_online import OnlineUploader
 from components.worker import WorkerThread
 from components.resource_path_helper import resource_path
+from components.authenticator import Authenticator
 
 import os
 
@@ -53,6 +54,7 @@ class PrintOptions(QWidget):
         self.name_form = NameForm()
         self.printer = Printer()
         self.frame_presets = FramePresets()
+        self.authenticator = Authenticator()
 
         # the function for options gui
         self.options()
@@ -71,12 +73,33 @@ class PrintOptions(QWidget):
 
 
     def validate(self, path: str, sizeH: float, sizeW: float, drive_link: str):
-        vars = {'Framed Image': path, 'Height': sizeH, 'Width': sizeW, 'Drive Link': drive_link}
+        vars = {'Framed Image': path, 'Height': sizeH, 'Width': sizeW}
         invalidItems = []
+
         for varName, varValue in vars.items():
             if not varValue or varValue == "":
                 invalidItems.append(varName)
         
+        if self.online_uploader.getIsUploadState():
+            logged_in = bool(self.authenticator.get_service_var())
+            if not logged_in:
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Warning)
+                msg_box.setWindowTitle("Not Signed in")
+                msg_box.setText("Please sign in to google first.")
+                msg_box.exec()
+                return False
+            else:
+                if drive_link:
+                    return True
+                else:
+                    msg_box = QMessageBox()
+                    msg_box.setIcon(QMessageBox.Warning)
+                    msg_box.setWindowTitle("Empty Fields Error")
+                    msg_box.setText("Please put a drive link first. This will be used as the upload destination.")
+                    msg_box.exec()
+                    return False
+            
         if len(invalidItems) > 0:
             msg_box = QMessageBox()
             msg_box.setIcon(QMessageBox.Warning)
@@ -85,7 +108,10 @@ class PrintOptions(QWidget):
             msg_box.exec()
             return False
         else:
+            
             return True
+        
+        
 
     def process_to_queue_worker(self):
         path = self.frame_presets.getCurrentOverlayedImage()

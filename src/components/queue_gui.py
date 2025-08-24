@@ -1,5 +1,6 @@
-import os, faulthandler, time
+import os, faulthandler
 
+from datetime import datetime
 from icecream import ic
 from PySide6 import Shiboken
 from PySide6.QtCore import QSize, Qt, QTimer
@@ -75,14 +76,15 @@ class Queue(QWidget):
             if data == value:
                 return list_item
         return None
-    
+
     def update_progress_to_specific_queue_num(self, progress:str):
-        # print(f'{progress}: {self.current_work_number} - {time.strftime('%-M:%-S.%f')}')
+        print(f'{progress}: {self.current_work_number} - {datetime.now()}')
         current_queue_item = self.find_item_by_value(self.current_work_number)
         current_queue_item_widget = self.list.itemWidget(current_queue_item)
-        if current_queue_item_widget is None:
-            # ic('current_queue_item_widget is none')
+        if current_queue_item_widget:
             current_queue_item_widget.updateIcons(progress)
+        else:
+            print('current_queue_item_widget is none')
 
     def destroy_queue_item_and_retry_operations(self, work_number: int):
         # first, add the job back into the queue using the same args

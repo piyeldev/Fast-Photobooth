@@ -30,6 +30,8 @@ class Authenticator(QObject):
         self.CREDENTIALS_FILE = resource_path("assets/creds/credentials.json")
         self.TOKEN_FILE = "token.json"
 
+        self.service = None
+
     def token_file_exists(self):
         return os.path.exists(self.TOKEN_FILE)
     def browser_login(self):
