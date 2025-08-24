@@ -1,3 +1,7 @@
 .venv/*
 howtomakeframeview.txt
-assets/creds
+src/assets/creds
+src/token.json
+build/
+dist/
+src/__pycache__

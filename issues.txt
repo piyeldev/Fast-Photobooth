@@ -1,0 +1,2 @@
+2. attempt to repair the edit frame window error that happens when you click it back after closing
+3. fix the queue status ui
