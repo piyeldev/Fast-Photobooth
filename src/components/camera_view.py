@@ -12,6 +12,7 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.camera import Camera
 from components.captures_list import CapturesList
 from icecream import ic
+from components.resource_path_helper import resource_path
 
 class CameraView(QWidget):
     def __init__(self):
@@ -36,7 +37,6 @@ class CameraView(QWidget):
         self.layout.addWidget(self.cam_widg, alignment=Qt.AlignTop)
         self.layout.addWidget(self.camera_buttons_widget, alignment=Qt.AlignCenter)
 
-        # self.setStyleSheet(load_stylesheet('camera_view_styles.qss'))
         
 
     def toolbar(self):
@@ -55,7 +55,7 @@ class CameraView(QWidget):
 
         # detach icon btn
         self.detach_btn = QPushButton()
-        self.detach_icon_img = QPixmap("../assets/icons/detach-icon.png")
+        self.detach_icon_img = QPixmap(resource_path("assets/icons/detach-icon.png"))
         self.detach_icon = QIcon(self.detach_icon_img)
         self.detach_btn.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -146,7 +146,7 @@ class CameraView(QWidget):
         self.take_pic_btn_widg.setCursor(Qt.CursorShape.PointingHandCursor)
         self.take_pic_btn_widg.setFixedWidth(53)
         self.take_pic_btn_widg.setFixedHeight(53)
-        self.take_pic_pxmp = QPixmap("../assets/icons/camera_icon.png")
+        self.take_pic_pxmp = QPixmap(resource_path("assets/icons/camera_icon.png"))
         self.take_pic_icon = QIcon()
         self.take_pic_btn_widg.setIconSize(self.take_pic_pxmp.rect().size())
         self.take_pic_icon.addPixmap(self.take_pic_pxmp)
@@ -173,7 +173,7 @@ class CameraView(QWidget):
         self.record_btn = QPushButton("Record")
         self.record_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.record_btn.clicked.connect(self.record_vid)
-        record_pxmp = QPixmap("../assets/icons/video-icon.png")
+        record_pxmp = QPixmap(resource_path("assets/icons/video-icon.png"))
         record_icon = QIcon()
         record_icon.addPixmap(record_pxmp)
 

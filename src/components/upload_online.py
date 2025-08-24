@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from icecream import ic
 from components.frame import FramePresets
 from components.authenticator import Authenticator
+from components.resource_path_helper import resource_path
 import re
 
 
@@ -36,10 +37,12 @@ class OnlineUploader(QWidget):
         layout.addWidget(label)
         layout.addWidget(self.gdrive_grp)
 
-
-
+        self.authenticator.is_sucessful.connect(self.updateDriveButton)
 
         
+    def updateDriveButton(self):
+        email_address = self.authenticator.get_email_address()
+        self.sign_in_btn.setText(f'  {email_address}')
 
     def gdrive(self):
         self.gdrive_grp = QWidget()
@@ -60,7 +63,7 @@ class OnlineUploader(QWidget):
 
         self.sign_in_btn = QPushButton("  Log In to Google")
         self.sign_in_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        google_icon = QIcon("../assets/icons/google_icon.png")
+        google_icon = QIcon(resource_path("assets/icons/google_icon.png"))
         self.sign_in_btn.setIcon(google_icon)
         self.sign_in_btn.setFont(font)
         self.sign_in_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)

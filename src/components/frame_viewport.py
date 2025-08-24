@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGrap
 from PySide6.QtGui import QPixmap, QMouseEvent, QPen, QColor, QWheelEvent
 from PySide6.QtCore import QRectF, Qt, Signal
 from icecream import ic
+from components.resource_path_helper import resource_path
 
 class FrameViewport(QGraphicsView):
     placeholder_added = Signal(dict)
@@ -39,7 +40,7 @@ class FrameViewport(QGraphicsView):
         if img_path and img_path != "":
             self.pixmap = QPixmap(img_path)
         else:
-            self.pixmap = QPixmap("../assets/imgs/Rectangle.png")
+            self.pixmap = QPixmap(resource_path("assets/imgs/Rectangle.png"))
         self.pixmap_item.setPixmap(self.pixmap)
         self.setSceneRect(0, 0, self.pixmap.width(), self.pixmap.height())
         self.fitInView(self.pixmap_item, aspectRadioMode=Qt.KeepAspectRatio)

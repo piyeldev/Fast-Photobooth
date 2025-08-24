@@ -3,6 +3,7 @@ from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtCore import QSize, Qt
 from icecream import ic
 import os
+from components.resource_path_helper import resource_path
 
 class PictureItem(QWidget):
     def __init__(self, img_path:str):
@@ -34,7 +35,7 @@ class PictureItem(QWidget):
         overlay_layout = QHBoxLayout()
         self.overlay.setLayout(overlay_layout)
         delete_btn = QPushButton()
-        delete_icon = QIcon("../assets/icons/trash_icon.png")
+        delete_icon = QIcon(resource_path("assets/icons/trash_icon.png"))
         delete_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         delete_btn.setIcon(delete_icon) 
         delete_btn.setCursor(Qt.CursorShape.OpenHandCursor)

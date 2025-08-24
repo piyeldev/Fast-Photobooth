@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QGraphicsPixmapItem, QGraphicsView, QGraphicsScene
 from PySide6.QtGui import QPixmap, QWheelEvent
 from PySide6.QtCore import Qt
+from components.resource_path_helper import resource_path
 
 class PixmapViewer(QGraphicsView):
     _instance = None
@@ -28,7 +29,7 @@ class PixmapViewer(QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
         if not pixmap:
-            self.setPixmapToView(QPixmap("../assets/imgs/Rectangle.png"))
+            self.setPixmapToView(QPixmap(resource_path("assets/imgs/Rectangle.png")))
         else:
             self.setPixmapToView(pixmap)
 

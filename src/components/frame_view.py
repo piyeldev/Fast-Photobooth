@@ -5,6 +5,8 @@ from windows.edit_frame_window import EditFrameWindow
 from components.frame import FramePresets
 from components.pixmap_viewer import PixmapViewer
 from components.captures_list import CapturesList
+from components.resource_path_helper import resource_path
+
 class FrameView(QWidget):
     frame_dropdown_added = Signal(bool)
 
@@ -12,7 +14,7 @@ class FrameView(QWidget):
         super().__init__()
         layout = QVBoxLayout()
         self.setLayout(layout)
-        self.rectangle_path = "../assets/imgs/Rectangle.png"
+        self.rectangle_path = resource_path("assets/imgs/Rectangle.png")
 
         self.toolbar()
         self.frame()
@@ -42,7 +44,7 @@ class FrameView(QWidget):
         edit_btn = QPushButton("Edit Frame")
         edit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         edit_btn.setFont(QFont("Poppins", 10, QFont.Weight.Medium))
-        edit_icon_pxmp = QPixmap("../assets/icons/edit_icon.png")
+        edit_icon_pxmp = QPixmap(resource_path("assets/icons/edit_icon.png"))
         edit_icon = QIcon(edit_icon_pxmp)
         edit_btn.setIcon(edit_icon)
         edit_btn.setIconSize(edit_icon_pxmp.rect().size())

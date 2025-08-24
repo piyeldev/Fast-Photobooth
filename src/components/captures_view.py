@@ -3,7 +3,7 @@ from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Qt, QSize, QTimer
 from components.picture_item import PictureItem
 from components.captures_list import CapturesList
-
+from components.resource_path_helper import resource_path
 class CapturesView(QWidget):
     def __init__(self):
         super().__init__()
@@ -38,9 +38,9 @@ class CapturesView(QWidget):
         # button
         select_all_and_delete_btn = QPushButton("Select All and Delete")
         select_all_and_delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        select_all_and_delete_btn.setIcon(QPixmap("../assets/icons/trash_icon.png"))
+        select_all_and_delete_btn.setIcon(QPixmap(resource_path("assets/icons/trash_icon.png")))
         select_all_and_delete_btn.setFont(QFont("Poppins", 10, QFont.Weight.Medium))
-        select_all_and_delete_btn.setStyleSheet("padding: 4px 10px; border-radius: 8px;")
+        select_all_and_delete_btn.setStyleSheet("background-color: #1fb141; padding: 4px 10px; border-radius: 8px;")
 
         select_all_and_delete_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 

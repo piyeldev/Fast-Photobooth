@@ -5,6 +5,7 @@ from components.frame import FramePresets
 import os
 from components.frame_viewport import FrameViewport
 from components.pixmap_viewer import PixmapViewer
+from components.resource_path_helper import resource_path
 
 class EditFrameWindow(QWidget):
     def __init__(self):
@@ -44,7 +45,7 @@ class EditFrameWindow(QWidget):
         self.tools()
 
     def viewport(self):
-        pixmap_path = "../assets/imgs/Rectangle.png"
+        pixmap_path = resource_path("assets/imgs/Rectangle.png")
 
         self.frame_viewport = FrameViewport(pixmap_path)
         self.frame_viewport.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -99,14 +100,14 @@ class EditFrameWindow(QWidget):
         # 4- start
         new_preset_btn = QPushButton("New Preset")
         new_preset_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.add_icon = QIcon("../assets/icons/add_icon.png")
+        self.add_icon = QIcon(resource_path("assets/icons/add_icon.png"))
         new_preset_btn.setIcon(self.add_icon)
         new_preset_btn.setStyleSheet("background-color: #1fb141; padding: 5px 10px; border-radius: 0.4em")
         new_preset_btn.clicked.connect(self.createNewPreset)
 
         delete_preset_btn = QPushButton()
         delete_preset_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.delete_icon = QIcon("../assets/icons/trash_icon.png")
+        self.delete_icon = QIcon(resource_path("assets/icons/trash_icon.png"))
         delete_preset_btn.setIcon(self.delete_icon)
         delete_preset_btn.setStyleSheet("background-color: #1fb141; padding: 5px 10px; border-radius: 0.4em")
         delete_preset_btn.clicked.connect(self.delete_preset)

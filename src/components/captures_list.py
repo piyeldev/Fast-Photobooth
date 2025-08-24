@@ -23,8 +23,6 @@ class CapturesList(QWidget):
         
         super().__init__()
 
-        self.setStyleSheet("background-color: #2a2a2a")
-
         self.initialized = True
 
         self.scroll = QScrollArea(self)

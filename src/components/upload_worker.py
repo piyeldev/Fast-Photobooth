@@ -63,7 +63,7 @@ class UploadWorker(QObject):
             box = (x, y, x + int(qr_code.width), y + int(qr_code.height))
             image.paste(qr_code, box)
             base, ext = os.path.splitext(image_path)
-            new_img_path = f"{base}-wqr{ext}"
+            new_img_path = f"{base}-{name}-wqr{ext}"
             image.save(new_img_path)
             return new_img_path
         else:

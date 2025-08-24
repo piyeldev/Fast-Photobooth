@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QLabel, QVBoxLayout, QPushButton
-from components.load_stylesheet import load_stylesheet
 from PySide6.QtGui import QFont, QFontDatabase, QPainter, QColor, QPixmap, QIcon
 from PySide6.QtCore import Qt
+from components.resource_path_helper import resource_path
 
 class TopBar(QWidget):
     def __init__(self):
@@ -22,10 +22,6 @@ class TopBar(QWidget):
         self.layout.addWidget(self.heading_banner)
         self.layout.addWidget(self.settings_btn_widget, alignment=Qt.AlignRight)
 
-        # set stylesheet
-        
-        self.setStyleSheet(load_stylesheet('topbar_styles.qss'))
-        # self.setStyleSheet("background-color: blue;")
 
     def heading_banner(self):
         self.heading_banner = QWidget()
@@ -53,7 +49,7 @@ class TopBar(QWidget):
 
         #with the icon - PARTIAL
         self.heading_circle_lbl = QLabel()
-        self.heading_circle_lbl.setPixmap(QPixmap("../assets/imgs/logo.png"))
+        self.heading_circle_lbl.setPixmap(QPixmap(resource_path("assets/imgs/logo.png")))
         
         self.heading_banner_layout.setAlignment(Qt.AlignLeft)
         self.heading_banner_layout.addWidget(self.heading_circle_lbl)
@@ -64,8 +60,9 @@ class TopBar(QWidget):
         self.settings_btn_widget.setCursor(Qt.CursorShape.PointingHandCursor)
         self.settings_btn_widget.setObjectName("settings_btn")
 
-        self.settings_icon_img = QPixmap("../assets/icons/settings-icon.png")
+        self.settings_icon_img = QPixmap(resource_path("assets/icons/settings-icon.png"))
         self.settings_icon = QIcon(self.settings_icon_img)
+        self.settings_btn_widget.setStyleSheet("background-color: #1fb141; height: 60; width: 60; border-radius: 30px;")
 
         self.settings_btn_widget.setIcon(self.settings_icon)
         self.settings_btn_widget.setIconSize(self.settings_icon_img.size())

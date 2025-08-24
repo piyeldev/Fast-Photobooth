@@ -8,6 +8,7 @@ from PySide6.QtCore import QSize, Qt, Signal
 from icecream import ic
 
 from components.worker import WorkerThread
+from components.resource_path_helper import resource_path
 
 class QueueItemWidget(QWidget):
 
@@ -47,36 +48,36 @@ class QueueItemWidget(QWidget):
         self.work_number = work_num
 
     def _initIcons(self):
-        drive_icon = QPixmap("../assets/icons/google_drive.png")
+        drive_icon = QPixmap(resource_path("assets/icons/google_drive.png"))
         self.drive_icon_placeholder_label = QLabel()
         self.drive_icon_placeholder_label.setPixmap(drive_icon)
         self.drive_icon_placeholder_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        printing_icon = QPixmap("../assets/icons/printer.png")
+        printing_icon = QPixmap(resource_path("assets/icons/printer.png"))
         self.printing_icon_placeholder_label = QLabel()
         self.printing_icon_placeholder_label.setPixmap(printing_icon)
         self.printing_icon_placeholder_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         
-        loading_gif = QMovie("../assets/icons/loading.gif")
+        loading_gif = QMovie(resource_path("assets/icons/loading.gif"))
         loading_gif.setScaledSize(QSize(25, 25))
         loading_gif.start()
         self.loading_gif_placeholder_label = QLabel()
         self.loading_gif_placeholder_label.setMovie(loading_gif)
         self.loading_gif_placeholder_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        finished_icon = QPixmap("../assets/icons/ep_finished.png")
+        finished_icon = QPixmap(resource_path("assets/icons/ep_finished.png"))
         self.finished_icon_placeholder_label = QLabel()
         self.finished_icon_placeholder_label.setPixmap(finished_icon)
         self.finished_icon_placeholder_label.setFixedSize(QSize(25, 25))
         self.finished_icon_placeholder_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        error_icon = QPixmap("../assets/icons/material-symbols_error.png")
+        error_icon = QPixmap(resource_path("assets/icons/material-symbols_error.png"))
         self.error_icon_placeholder_label = QLabel()
         self.error_icon_placeholder_label.setPixmap(error_icon)
         self.error_icon_placeholder_label.setFixedSize(QSize(25, 25))
         self.error_icon_placeholder_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         
-        retry_icon = QPixmap("../assets/icons/stash_arrow-retry.png")
+        retry_icon = QPixmap(resource_path("assets/icons/stash_arrow-retry.png"))
         self.retry_btn = QPushButton(icon=retry_icon)
         self.retry_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.retry_btn.setFlat(True)

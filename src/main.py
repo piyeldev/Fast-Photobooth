@@ -1,8 +1,18 @@
 import os, sys, sysconfig
 
 # PySide6 installation dir to DLL search paths
-d = sysconfig.get_path("purelib")  # e.g. C:\...\Lib\site‑packages
-os.add_dll_directory(os.path.join(d, "PySide6"))
+if not getattr(sys, 'frozen', False):
+    # Running in normal Python
+
+    d = sysconfig.get_path("purelib")
+    pyside_path = os.path.join(d, "PySide6")
+    if os.path.exists(pyside_path):
+        os.add_dll_directory(pyside_path)
+else:
+    # Running inside a PyInstaller bundle
+    # PyInstaller already handles DLL paths
+    pass
+
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtCore import qInstallMessageHandler, QtMsgType, QLoggingCategory
@@ -10,6 +20,7 @@ import traceback
 from windows.main_window import MainWindow
 from PySide6.QtGui import QPalette, QColor, QFont, QFontDatabase
 from components.queue_worker import QueueWorker
+from components.resource_path_helper import resource_path
 
 def message_handler(msg_type, context, message):
     if "Corrupt JPEG data" in message:
@@ -17,26 +28,8 @@ def message_handler(msg_type, context, message):
     # otherwise fallback to default handling
     print(message)
 
-def set_dark_mode(app):
-    palette = QPalette()
-    palette.setColor(QPalette.Window, QColor(53, 53, 53))
-    palette.setColor(QPalette.WindowText, QColor(255, 255, 255))
-    palette.setColor(QPalette.Base, QColor(42, 42, 42))
-    palette.setColor(QPalette.AlternateBase, QColor(66, 66, 66))
-    palette.setColor(QPalette.ToolTipBase, QColor(255, 255, 255))
-    palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
-    palette.setColor(QPalette.Text, QColor(255, 255, 255))
-    palette.setColor(QPalette.Button, QColor(53, 53, 53))
-    palette.setColor(QPalette.ButtonText, QColor(255, 255, 255))
-    palette.setColor(QPalette.BrightText, QColor(255, 0, 0))
-    palette.setColor(QPalette.Link, QColor(42, 130, 218))
-    palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-    palette.setColor(QPalette.HighlightedText, QColor(0, 0, 0))
-    app.setPalette(palette)
-
 def load_fonts():
-        poppins_dir = '../assets/fonts/Poppins' # use when running from main.py, not vscode debugger
-        # poppins_dir = f'{os.getcwd()}/assets/fonts/Poppins'
+        poppins_dir = resource_path('assets/fonts/Poppins')
         poppins_font_files = os.listdir(poppins_dir)
 
         for font_file in poppins_font_files:

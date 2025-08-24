@@ -13,6 +13,7 @@ from components.printer import Printer
 from components.queue_worker import QueueWorker
 from components.upload_online import OnlineUploader
 from components.worker import WorkerThread
+from components.resource_path_helper import resource_path
 
 import os
 
@@ -33,7 +34,7 @@ class PrintOptions(QWidget):
         process_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         process_btn.setStyleSheet("background-color: #1fb141; border-radius: 0.5em; padding: 6px 12px")
         process_btn.setFont(QFont("Poppins", 14, QFont.Weight.Medium))
-        process_btn_pxmp = QPixmap("../assets/icons/print_icon.png")
+        process_btn_pxmp = QPixmap(resource_path("assets/icons/print_icon.png"))
         process_btn_icon = QIcon(process_btn_pxmp)
         process_btn.setIcon(process_btn_icon)
         process_btn.setIconSize(process_btn_pxmp.rect().size())
@@ -73,7 +74,7 @@ class PrintOptions(QWidget):
         vars = {'Framed Image': path, 'Height': sizeH, 'Width': sizeW, 'Drive Link': drive_link}
         invalidItems = []
         for varName, varValue in vars.items():
-            if varValue is None or varValue is "":
+            if not varValue or varValue == "":
                 invalidItems.append(varName)
         
         if len(invalidItems) > 0:
