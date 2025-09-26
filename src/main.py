@@ -1,4 +1,13 @@
 import os, sys, sysconfig
+from components.resource_path_helper import resource_path
+
+# windows only
+vlc_root = resource_path('vlc/')
+vlc_plugins = os.path.join(vlc_root, "plugins")
+
+# Update environment so VLC knows where to look
+os.environ["VLC_PLUGIN_PATH"] = vlc_plugins
+os.environ["PATH"] = vlc_root + os.pathsep + os.environ["PATH"]
 
 # PySide6 installation dir to DLL search paths
 if not getattr(sys, 'frozen', False):

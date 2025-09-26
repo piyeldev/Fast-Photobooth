@@ -5,8 +5,9 @@ from PySide6.QtCore import QSize, QDir, Signal, QUrl, QObject
 from PySide6.QtGui import QColor, QPalette, QImage, QPixelFormat
 from components.custom_print import print
 from time import strftime
-import os
-from icecream import ic
+from components.resource_path_helper import resource_path
+import os, sys, ctypes
+import vlc 
 
 class Camera(QObject):
     image_captured = Signal(str)
@@ -17,20 +18,62 @@ class Camera(QObject):
         self.image_capture = None
         self.media_recorder = None
 
+        self.vlc_instance = vlc.Instance("--avcodec-hw=any", "--no-audio", "--live-caching=0", "--vout=direct3d")
+        self.player = self.vlc_instance.media_player_new()
+
+    def make_new_media_according_to_platform(self, cam_name_or_id: str):
+        # make new media source according to platform
+        if (sys.platform.startswith("win32")):
+            media = self.vlc_instance.media_new("dshow://",
+                                           f":dshow-vdev={cam_name_or_id}",
+                                           ":dshow-size=1920x1080",
+                                           ":live-caching=0",)
+        elif (sys.platform.startswith("linux")):
+            media = self.vlc_instance.media_new(f"v4l2://{cam_name_or_id}")
+
+        return media
+    def initialize_cam_vlc(self, widget_attach: QWidget):
+        # int vars
+        available_cameras = QMediaDevices.videoInputs()
+        first_cam_name = available_cameras[0].description()
+        first_cam_id = available_cameras[0].id()
+        
+        media = self.make_new_media_according_to_platform(first_cam_name)
+        self.player.set_media(media)
+
+        """When window is shown, attach video output to widget"""
+        window_id = int(widget_attach.winId())
+        if sys.platform.startswith("linux"):  # X11
+            self.player.set_xwindow(window_id)
+        elif sys.platform == "win32":  # Windows
+            self.player.set_hwnd(window_id)
+
+        self.player.video_set_scale(0)
+        self.player.video_set_aspect_ratio("16:9") 
+
+        width = self.player.video_get_width()
+        height = self.player.video_get_height()
+        print(f'Current resolution: {width} x {height}')
+        self.player.play()
+
+
+
     def initialize_camera(self, video_widget:QVideoWidget, resolution:QSize):
         # Select the default camera
         available_cameras = QMediaDevices.videoInputs()
+        print(available_cameras)
         if not available_cameras:
             raise RuntimeError("No cameras available")
         
 
         # pick first camera
         self.camera = QCamera(available_cameras[0])
+        self.video_widget_var = video_widget
 
         # setup capture session
         self.capture_session = QMediaCaptureSession()
         self.capture_session.setCamera(self.camera)
-        self.capture_session.setVideoOutput(video_widget)
+        self.capture_session.setVideoOutput(self.video_widget_var)
 
 
         # image capture + recorder
@@ -66,7 +109,7 @@ class Camera(QObject):
         for res in supported_formats:
             resolution = res.resolution()
             max_frame_rate = res.maxFrameRate()
-
+            print(f'formats {res.pixelFormat()} + {res.resolution()}')
             if res.pixelFormat() is QVideoFrameFormat.PixelFormat.Format_Jpeg:
                 item = [f'{resolution.width()} x {resolution.height()} @{max_frame_rate}fps', res]
                 if not item in res_and_formats_list:
@@ -74,6 +117,7 @@ class Camera(QObject):
             
         # for res, format in res_and_formats_list:
         #     print(f'{res} {format.pixelFormat()}')
+        print(f"res and formats list {res_and_formats_list}")
         return res_and_formats_list
 
     def set_resolution_and_restart(self, index):
@@ -131,8 +175,8 @@ class Camera(QObject):
 
     def capture_image(self):
         # # ic()
-        if not self.image_capture:
-            raise RuntimeError("Image capture not initialized")
+        # if not self.image_capture:
+        #     raise RuntimeError("Image capture not initialized")
         
         time_date = strftime('%Y%m%d-%H%M%S')
         dir = QDir.homePath() + f"/Pictures/FastPhotoCaptures"
@@ -141,19 +185,26 @@ class Camera(QObject):
             os.mkdir(dir)
         
         save_file = dir + f'/CAPTURED_{time_date}.jpg'
-        self.image_capture.captureToFile(save_file)
-        self.image_capture.errorOccurred.connect(lambda: print("error occured"))
-        self.image_capture.imageCaptured.connect(lambda id, image: self.handle_return_image_captured(id, image, save_file))
+        self.player.video_take_snapshot(0, save_file, 0, 0)
+        # image = QImage('save_file')
+        self.handle_return_image_captured_vlc(save_file)
+
+        # self.image_capture.captureToFile(save_file)
+        # self.image_capture.errorOccurred.connect(lambda: print("error occured"))
+        # self.image_capture.imageCaptured.connect(lambda id, image: self.handle_return_image_captured(id, image, save_file))
+
+    def handle_return_image_captured_vlc(self, save_path: str):
+        self.image_captured.emit(save_path)
 
     def handle_return_image_captured(self, id: int, image: QImage, save_path):
-        if image.save(save_path):
-            print(f"Image saved successfully: {save_path}")
-        else:
-            print(f'Failed to save image to: {save_path}')
+        # if image.save(save_path):
+        #     print(f"Image saved successfully: {save_path}")
+        # else:
+        #     print(f'Failed to save image to: {save_path}')
         
         self.image_captured.emit(save_path)
 
-        self.image_capture.imageCaptured.disconnect()
+        # self.image_capture.imageCaptured.disconnect()
 
 
     
@@ -168,6 +219,16 @@ class Camera(QObject):
         
         return list_cameras
     
+    def change_camera_vlc(self, index):
+        # int vars
+        available_cameras = QMediaDevices.videoInputs()
+        first_cam_name = available_cameras[index].description()
+        first_cam_id = available_cameras[index].id()   # linux
+        
+        media = self.make_new_media_according_to_platform(first_cam_name)
+        self.player.set_media(media)
+        self.player.play()
+
     def change_camera(self, index):
         if self.camera:
             self.camera.stop()
@@ -176,7 +237,7 @@ class Camera(QObject):
         self.capture_session.setCamera(self.camera)
 
         self.capture_session.setVideoOutput(self.video_widget_var)
-        self.set_resolution(self.resolution_var)
+        self.set_resolution_and_restart(0)
 
         self.image_capture = QImageCapture(self.camera)
         self.capture_session.setImageCapture(self.image_capture)

@@ -1,3 +1,3 @@
-2. attempt to repair the edit frame window error that happens when you click it back after closing
-3. fix the queue status ui
-4.drive link is empty error even if not uploading
+1. make the camera choosable - DONE
+
+1. make jew the new executable and create tutorial on how to download droidcam client

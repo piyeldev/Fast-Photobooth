@@ -6,38 +6,101 @@ from PySide6.QtWidgets import (QWidget,
                                QComboBox, 
                                QSizePolicy,
                                QStackedLayout)
-from PySide6.QtGui import QFont, QPixmap, QIcon, QPainter
-from PySide6.QtCore import Qt, QRect, QSize, QTimer, QElapsedTimer
+from PySide6.QtGui import QFont, QPixmap, QIcon, QPainter, QImage
+from PySide6.QtCore import Qt, QRect, QSize, QTimer, QElapsedTimer ,QDir
+from PySide6.QtMultimedia import QMediaDevices
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.camera import Camera
 from components.captures_list import CapturesList
 from icecream import ic
 from components.resource_path_helper import resource_path
+from components.new_camera import CameraNew
+
+import cv2, os
+from time import strftime
 
 class CameraView(QWidget):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
+    
     def __init__(self):
+        if hasattr(self, "initialized") and self.initialized:
+            return
         super().__init__()
+        self.initialized = True
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
         self.layout.setSpacing(0)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        #init camera class
-        self.camera_controller = Camera()
-        self.camera_controller.image_captured.connect(self.display_to_captures_list)
+        # OpenCV camera capture
+        self.cap = cv2.VideoCapture(0)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.aspect_ratio = w / h
+        # self.aspect_ratio = 16/9
 
-        self.cam_feed()
+        self.is_recording = False
+        self.out = None
+
+        self.cam_timer = QTimer()
+        self.cam_timer.timeout.connect(self.update_frame)
+        self.cam_timer.start(30)  # ~30 FPS
+
+        self.cam_placeholder = QLabel()
+        self.self_width = self.width()
+        self.cam_placeholder.setMaximumWidth(self.width())
+
         self.toolbar()
         self.camera_buttons_init()
         
 
         self.layout.setContentsMargins(0,0,0,0)
         self.layout.addWidget(self.toolbar_widget)
-        self.layout.addWidget(self.cam_widg, alignment=Qt.AlignTop)
+        self.layout.addWidget(self.cam_placeholder, alignment=Qt.AlignTop)
         self.layout.addWidget(self.camera_buttons_widget, alignment=Qt.AlignCenter)
 
+    def get_available_cameras(self):
+        available_cameras = QMediaDevices.videoInputs()
+        list_cameras = []
+        for camera in available_cameras:
+            camera_id = camera.id().data().decode('utf-8') if camera.id().data() else ''
+            cam_info = f'{camera.description()}'
+
+            list_cameras.append(cam_info)
         
+        return list_cameras
+    
+    def update_frame(self):
+        ret, frame = self.cap.read()
+        if not ret:
+            return
+        
+        # Write frame if recording
+        if self.is_recording and self.out:
+            self.out.write(frame)
+
+        # convert for display
+        w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        height = int((self.self_width * h) /w)
+        # print(f'{self.self_width}x{height} ratio: {w/h}, imgW: {w} | imgH: {h}')
+        display_frame = cv2.resize(frame, (self.self_width, height), interpolation=cv2.INTER_AREA)
+
+        # Convert frame to QImage
+        rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb.shape
+        qimg = QImage(rgb.data, w, h, ch * w, QImage.Format_RGB888)
+        self.cam_placeholder.setPixmap(QPixmap.fromImage(qimg))
 
     def toolbar(self):
         self.toolbar_widget = QWidget()
@@ -58,6 +121,7 @@ class CameraView(QWidget):
         self.detach_icon_img = QPixmap(resource_path("assets/icons/detach-icon.png"))
         self.detach_icon = QIcon(self.detach_icon_img)
         self.detach_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.detach_btn.clicked.connect(self.detach_cam)
 
         self.detach_btn.setIcon(self.detach_icon)
         self.detach_btn.setIconSize(self.detach_icon_img.size())
@@ -66,11 +130,33 @@ class CameraView(QWidget):
         self.toolbar_widget_layout.addWidget(self.detach_btn, alignment=Qt.AlignRight)
 
         self.choose_camera_dropdown()
-        self.choose_res_dropdown()
+        # self.choose_res_dropdown()
 
-        
+    def detach_cam(self):
+        from windows.camera_window import CameraWindow
+        self.cam_window = CameraWindow()
+        self.cam_window.show()
+    def get_supported_formats(self):
+        supported_formats = self.camera.cameraDevice().videoFormats()
+
+        res_and_formats_list = []
+        for res in supported_formats:
+            resolution = res.resolution()
+            max_frame_rate = res.maxFrameRate()
+            print(f'formats {res.pixelFormat()} + {res.resolution()}')
+            if res.pixelFormat() is QVideoFrameFormat.PixelFormat.Format_Jpeg:
+                item = [f'{resolution.width()} x {resolution.height()} @{max_frame_rate}fps', res]
+                if not item in res_and_formats_list:
+                    res_and_formats_list.append(item)
+            
+        # for res, format in res_and_formats_list:
+        #     print(f'{res} {format.pixelFormat()}')
+        print(f"res and formats list {res_and_formats_list}")
+        self.res_change(1)
+        return res_and_formats_list
+    
     def choose_res_dropdown(self):
-        supported_resolutions = self.camera_controller.get_supported_formats()
+        self.supported_resolutions = self.get_supported_formats()
         self.res_dropdown = QComboBox()
 
         self.res_dropdown.addItems(([item[0] for item in supported_resolutions]))
@@ -79,8 +165,15 @@ class CameraView(QWidget):
         self.res_dropdown.currentIndexChanged.connect(self.res_change)
 
     def res_change(self, index):
-        print(index)
-        self.camera_controller.set_resolution_and_restart(index)
+        # print(index)
+        # self.cap.release()
+        # new_cap = cv2.VideoCapture(self.current_camera_index)
+        resW = self.supported_resolutions[index][1]
+        print(resW)
+        # new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        # new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        # self.cap = new_cap
+        # self.camera_controller.set_resolution_and_restart(index)
 
 
     def choose_camera_dropdown(self):
@@ -89,7 +182,7 @@ class CameraView(QWidget):
         self.camera_list.setMaximumWidth(160)
         self.camera_list.setObjectName("cam_list")
 
-        self.camera_list.addItems(self.camera_controller.get_available_cameras())
+        self.camera_list.addItems(self.get_available_cameras())
 
         self.camera_list.view().window().setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.camera_list.view().window().setAttribute(Qt.WA_TranslucentBackground)
@@ -107,26 +200,18 @@ class CameraView(QWidget):
         }
         
         """)
-
-        self.camera_list.currentIndexChanged.connect(self.camera_controller.change_camera)
-
+        self.current_camera_index = self.camera_list.currentIndex()
+        self.camera_list.currentIndexChanged.connect(self.change_camera)
     
-
-    def cam_feed(self):
-        self.cam_widg = QWidget()
-        self.cam_widg.setFixedSize(640, 480)
-        layout = QVBoxLayout()
-        self.cam_widg.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
-
-        self.video_widget = QVideoWidget()
-        layout.addWidget(self.video_widget)
-        self.video_widget.setFixedSize(640, 480)
-
-        try:
-            self.camera_controller.initialize_camera(self.video_widget, QSize(640, 480))
-        except RuntimeError as e:
-            print(e)
+    def change_camera(self, index):
+        self.cap.release()
+        new_cap = cv2.VideoCapture(index)
+        if not new_cap.isOpened():
+            self.camera_list.setCurrentIndex(self.current_camera_index)
+            return False
+        new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.cap = new_cap
 
         
     def camera_buttons_init(self):
@@ -136,10 +221,10 @@ class CameraView(QWidget):
 
         self.camera_buttons_widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.take_pic_btn()
-        # self.record_vid_btn()
+        self.record_vid_btn()
 
         layout.addWidget(self.take_pic_btn_widg)
-        # layout.addWidget(self.record_btn)
+        layout.addWidget(self.record_btn)
 
     def take_pic_btn(self):
         self.take_pic_btn_widg = QPushButton()
@@ -156,13 +241,26 @@ class CameraView(QWidget):
             border-radius: 25px; 
             background-color: #1fb141; 
         }
+        QPushButton:hover {
+            background-color: #0077b6; 
+        }
         """)
 
-        self.take_pic_btn_widg.clicked.connect(self.capture_img)
-    
-    def capture_img(self):
-        # # ic()
-        self.camera_controller.capture_image()
+        self.take_pic_btn_widg.clicked.connect(self.capture_image)
+
+    def capture_image(self):
+        time_date = strftime('%Y%m%d-%H%M%S')
+        dir = QDir.homePath() + f"/Pictures/FastPhotoCaptures"
+
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        
+        save_file = dir + f'/CAPTURED_{time_date}.jpg'
+        ret, frame = self.cap.read()
+        if ret:
+            cv2.imwrite(save_file, frame)
+
+        self.display_to_captures_list(save_file)
 
     def display_to_captures_list(self, img_path: str):
         print("display "+img_path)
@@ -170,7 +268,7 @@ class CameraView(QWidget):
         captures_list.addPicture(img_path)
 
     def record_vid_btn(self):
-        self.record_btn = QPushButton("Record")
+        self.record_btn = QPushButton("Record and Auto Capture")
         self.record_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.record_btn.clicked.connect(self.record_vid)
         record_pxmp = QPixmap(resource_path("assets/icons/video-icon.png"))
@@ -186,10 +284,15 @@ class CameraView(QWidget):
 
         self.record_btn.setStyleSheet("""
         QPushButton {
-            width: 130px;
+            padding: 0 15 0 15;
             height: 53px;
             border-radius: 25px; 
             background-color: #1fb141; 
+            color: white;
+        }
+        QPushButton:hover {
+            background-color: #ff7b00; 
+            color: white;
         }
         """)
         self.elapsed_timer = QElapsedTimer()

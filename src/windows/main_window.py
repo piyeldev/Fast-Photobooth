@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QScrollBar, QSizePolicy, QMainWindow
+from PySide6.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QScrollBar, QSizePolicy, QMainWindow
 from PySide6.QtCore import Qt
 from components.topbar import TopBar
 from PySide6.QtGui import QFontDatabase
@@ -30,7 +30,11 @@ class MainWindow(QMainWindow):
 
 
     def main_view(self):
+        screen = QApplication.primaryScreen().availableGeometry()
+        screen_width = screen.width()
+
         self.main_view_widget = QWidget()
+        self.main_view_widget.setMaximumWidth(screen_width -30)
         self.main_view_layout = QHBoxLayout()
         self.main_view_layout.setContentsMargins(0, 0, 0, 0)
         self.main_view_widget.setLayout(self.main_view_layout)
@@ -51,6 +55,10 @@ class MainWindow(QMainWindow):
             }
 
         """)
+        
+        print(f'screen width: {screen_width}, current width: {self.width()}')
+
+        
 
     
         

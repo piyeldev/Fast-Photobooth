@@ -7,6 +7,7 @@ from google.oauth2.credentials import Credentials
 from PySide6.QtCore import QObject, Signal
 import os
 from components.resource_path_helper import resource_path
+from root_path import BASE_PATH
 
 class Authenticator(QObject):
     _instance = None
@@ -28,7 +29,7 @@ class Authenticator(QObject):
             "https://www.googleapis.com/auth/userinfo.email", 
             "https://www.googleapis.com/auth/userinfo.profile"]
         self.CREDENTIALS_FILE = resource_path("assets/creds/credentials.json")
-        self.TOKEN_FILE = "token.json"
+        self.TOKEN_FILE = f"{BASE_PATH}/token.json"
 
         self.service = None
 

@@ -124,6 +124,6 @@ class CapturesList(QWidget):
 
         frame, placeholder_list = self.instantiateVariablesForOverlaying()
 
-        self.threadOverlayImage(placeholder_list, frame)
+        self.threadOverlayImage(placeholder_list, frame, self.pictures)
 
         return -1

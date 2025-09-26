@@ -51,6 +51,7 @@ class ImageOverlayer(QObject):
             
 
         # Overlay the photostrip on top of the photos
+        #change the background and frame places to change the overlay order
         final_image = Image.alpha_composite(background, frame)
 
         # Save or display the final image
