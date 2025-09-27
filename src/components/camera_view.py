@@ -12,8 +12,9 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.captures_list import CapturesList
 from icecream import ic
 from components.resource_path_helper import resource_path
+from pygrabber.dshow_graph import FilterGraph
 
-import cv2, os
+import cv2, os, sys
 from time import strftime
 
 class CameraView(QWidget):
@@ -35,9 +36,11 @@ class CameraView(QWidget):
 
         self.layout.setSpacing(0)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
+        print(sys.platform)
         # OpenCV camera capture
-        self.cap = cv2.VideoCapture(2)
+        self.cap = cv2.VideoCapture(0)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.aspect_ratio = w / h
@@ -67,15 +70,20 @@ class CameraView(QWidget):
         self.layout.addWidget(self.camera_buttons_widget, alignment=Qt.AlignCenter)
 
     def get_available_cameras(self):
-        available_cameras = QMediaDevices.videoInputs()
-        list_cameras = []
-        for camera in available_cameras:
-            camera_id = camera.id().data().decode('utf-8') if camera.id().data() else ''
-            cam_info = f'{camera.description()}'
+        if sys.platform == 'win32':
+            graph = FilterGraph()
+            devices = graph.get_input_devices()
+            return devices
+        else:
+            available_cameras = QMediaDevices.videoInputs()
+            list_cameras = []
+            for camera in available_cameras:
+                camera_id = camera.id().data().decode('utf-8') if camera.id().data() else ''
+                cam_info = f'{camera.description()}'
 
-            list_cameras.append(cam_info)
-        
-        return list_cameras
+                list_cameras.append(cam_info)
+            
+            return list_cameras
     
     def update_frame(self):
         ret, frame = self.cap.read()
@@ -165,11 +173,17 @@ class CameraView(QWidget):
     def change_camera(self, index):
         self.cap.release()
         new_cap = cv2.VideoCapture(index)
+
+        
+        new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        w = new_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        h = new_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+        print(f'{w}x{h}')
         if not new_cap.isOpened():
             self.camera_list.setCurrentIndex(self.current_camera_index)
             return False
-        # new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        # new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.cap = new_cap
 
         
