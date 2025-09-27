@@ -37,7 +37,7 @@ class TopBar(QWidget):
         self.heading_font = QFont('Poppins', 20, QFont.Weight.ExtraBold)
         self.heading.setObjectName("heading_name")
 
-        self.version_label = QLabel("v1.0-dev")
+        self.version_label = QLabel("v1.2beta-dev")
         self.version_label_font = QFont('Poppins', 10, QFont.Weight.Light)
 
         self.heading.setFont(self.heading_font)

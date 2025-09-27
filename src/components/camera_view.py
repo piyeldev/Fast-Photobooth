@@ -4,17 +4,14 @@ from PySide6.QtWidgets import (QWidget,
                                QLabel, 
                                QPushButton, 
                                QComboBox, 
-                               QSizePolicy,
-                               QStackedLayout)
+                               QSizePolicy,)
 from PySide6.QtGui import QFont, QPixmap, QIcon, QPainter, QImage
-from PySide6.QtCore import Qt, QRect, QSize, QTimer, QElapsedTimer ,QDir
+from PySide6.QtCore import Qt, QTimer, QElapsedTimer ,QDir
 from PySide6.QtMultimedia import QMediaDevices
 from PySide6.QtMultimediaWidgets import QVideoWidget
-from components.camera import Camera
 from components.captures_list import CapturesList
 from icecream import ic
 from components.resource_path_helper import resource_path
-from components.new_camera import CameraNew
 
 import cv2, os
 from time import strftime
@@ -136,6 +133,7 @@ class CameraView(QWidget):
         from windows.camera_window import CameraWindow
         self.cam_window = CameraWindow()
         self.cam_window.show()
+
     def get_supported_formats(self):
         supported_formats = self.camera.cameraDevice().videoFormats()
 
