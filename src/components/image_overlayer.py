@@ -5,7 +5,6 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtCore import QTimer, QObject, Signal
 import os
 import time
-from icecream import ic
 
 class ImageOverlayer(QObject):
     overlay_image_made = Signal(str)

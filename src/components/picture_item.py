@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QSizePolicy, QHBoxLayout, QPushButton
 from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtCore import QSize, Qt
-from icecream import ic
 import os
 from components.resource_path_helper import resource_path
 

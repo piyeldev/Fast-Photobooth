@@ -1,30 +1,23 @@
 import os, sys, sysconfig
 from components.resource_path_helper import resource_path
 
-# windows only
-vlc_root = resource_path('vlc/')
-vlc_plugins = os.path.join(vlc_root, "plugins")
+if os.name == 'nt':
+    # PySide6 installation dir to DLL search paths
+    if not getattr(sys, 'frozen', False):
+        # Running in normal Python
 
-# Update environment so VLC knows where to look
-os.environ["VLC_PLUGIN_PATH"] = vlc_plugins
-os.environ["PATH"] = vlc_root + os.pathsep + os.environ["PATH"]
-
-# PySide6 installation dir to DLL search paths
-if not getattr(sys, 'frozen', False):
-    # Running in normal Python
-
-    d = sysconfig.get_path("purelib")
-    pyside_path = os.path.join(d, "PySide6")
-    if os.path.exists(pyside_path):
-        os.add_dll_directory(pyside_path)
-else:
-    # Running inside a PyInstaller bundle
-    # PyInstaller already handles DLL paths
-    pass
+        d = sysconfig.get_path("purelib")
+        pyside_path = os.path.join(d, "PySide6")
+        if os.path.exists(pyside_path):
+            os.add_dll_directory(pyside_path)
+    else:
+        # Running inside a PyInstaller bundle
+        # PyInstaller already handles DLL paths
+        pass
 
 
 from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtCore import qInstallMessageHandler, QtMsgType, QLoggingCategory
+from PySide6.QtCore import qInstallMessageHandler
 import traceback
 from windows.main_window import MainWindow
 from PySide6.QtGui import QPalette, QColor, QFont, QFontDatabase

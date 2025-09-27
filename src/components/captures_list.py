@@ -6,7 +6,6 @@ from components.frame import FramePresets
 from components.image_overlayer import ImageOverlayer
 from components.pixmap_viewer import PixmapViewer
 import threading, os
-from icecream import ic
 
 class CapturesList(QWidget):
     _instance = None
