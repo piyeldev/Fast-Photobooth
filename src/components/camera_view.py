@@ -37,7 +37,7 @@ class CameraView(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         # OpenCV camera capture
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(2)
         w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.aspect_ratio = w / h
@@ -168,8 +168,8 @@ class CameraView(QWidget):
         if not new_cap.isOpened():
             self.camera_list.setCurrentIndex(self.current_camera_index)
             return False
-        new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        # new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        # new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.cap = new_cap
 
         
@@ -307,6 +307,7 @@ class CameraView(QWidget):
         height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps    = self.cap.get(cv2.CAP_PROP_FPS) or 30.0  
 
+        print(f'{width}x{height} @{fps}fps')
         time_date = strftime('%Y%m%d-%H%M%S')
         dir = QDir.homePath() + f"/Pictures/FastPhotoCaptures"
 
