@@ -35,18 +35,25 @@ class ImageOverlayer(QObject):
 
             width_ratio = target_width / original_width
             height_ratio = target_height / original_height
-            scaling_factor = max(width_ratio, height_ratio)
+            scaling_factor = width_ratio
 
             new_width = int(original_width * scaling_factor)
             new_height = int(original_height * scaling_factor)
             resized_img = img.resize((new_width, new_height), Image.LANCZOS)
 
             # Center the resized image in the target box
-            offset_x = int(coords[i]["x"] + (target_width - new_width) / 2)
-            offset_y = int(coords[i]["y"] + (target_height - new_height) / 2)
+            offset_x = int(coords[i]["x"]) #  + (target_width - new_width) / 2
+            offset_y = int(coords[i]["y"]) #  + (target_height - new_height) / 2
             
+            # Crop if the height is bigger than target_height
+            cropped_img = resized_img.crop((
+                0,
+                max(0, (new_height - target_height) // 2),  # top crop
+                new_width,
+                min(new_height, (new_height + target_height) // 2)  # bottom crop
+            ))
             # Paste the resized image onto the background
-            background.paste(resized_img, (offset_x, offset_y), resized_img)
+            background.paste(cropped_img, (offset_x, offset_y), cropped_img)
             
 
         # Overlay the photostrip on top of the photos

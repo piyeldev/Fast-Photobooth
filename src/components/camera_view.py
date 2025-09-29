@@ -12,9 +12,8 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from components.captures_list import CapturesList
 from icecream import ic
 from components.resource_path_helper import resource_path
-from pygrabber.dshow_graph import FilterGraph
 
-import cv2, os, sys
+import cv2, os
 from time import strftime
 
 class CameraView(QWidget):
@@ -36,11 +35,9 @@ class CameraView(QWidget):
 
         self.layout.setSpacing(0)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        print(sys.platform)
+
         # OpenCV camera capture
         self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.aspect_ratio = w / h
@@ -54,7 +51,7 @@ class CameraView(QWidget):
 
         self.cam_timer = QTimer()
         self.cam_timer.timeout.connect(self.update_frame)
-        self.cam_timer.start(30)  # ~30 FPS
+        self.cam_timer.start(60)  # ~30 FPS
 
         self.cam_placeholder = QLabel()
         self.self_width = self.width()
@@ -70,20 +67,15 @@ class CameraView(QWidget):
         self.layout.addWidget(self.camera_buttons_widget, alignment=Qt.AlignCenter)
 
     def get_available_cameras(self):
-        if sys.platform == 'win32':
-            graph = FilterGraph()
-            devices = graph.get_input_devices()
-            return devices
-        else:
-            available_cameras = QMediaDevices.videoInputs()
-            list_cameras = []
-            for camera in available_cameras:
-                camera_id = camera.id().data().decode('utf-8') if camera.id().data() else ''
-                cam_info = f'{camera.description()}'
+        available_cameras = QMediaDevices.videoInputs()
+        list_cameras = []
+        for camera in available_cameras:
+            camera_id = camera.id().data().decode('utf-8') if camera.id().data() else ''
+            cam_info = f'{camera.description()}'
 
-                list_cameras.append(cam_info)
-            
-            return list_cameras
+            list_cameras.append(cam_info)
+        
+        return list_cameras
     
     def update_frame(self):
         ret, frame = self.cap.read()
@@ -171,20 +163,24 @@ class CameraView(QWidget):
         self.camera_list.currentIndexChanged.connect(self.change_camera)
     
     def change_camera(self, index):
-        self.cap.release()
-        new_cap = cv2.VideoCapture(index)
+        # Release old camera safely
+        if self.cap is not None and self.cap.isOpened():
+            self.cap.release()
+            cv2.waitKey(100)  # small delay to let device free
 
+        # Try indices until we find a working camera
+        for try_index in range(index, index + 3):  # try next 2 if fail
+            cap = cv2.VideoCapture(try_index)
+            if cap.isOpened():
+                self.cap = cap
+                print(f"success: opened camera {try_index}")
+                return True
+            else:
+                cap.release()
         
-        new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-        w = new_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        h = new_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-
-        print(f'{w}x{h}')
-        if not new_cap.isOpened():
-            self.camera_list.setCurrentIndex(self.current_camera_index)
-            return False
-        self.cap = new_cap
+        self.camera_list.setCurrentIndex(self.current_camera_index)
+        print("err: no camera found in tried indices")
+        return False
 
         
     def camera_buttons_init(self):

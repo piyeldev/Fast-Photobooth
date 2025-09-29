@@ -31,9 +31,9 @@ class PrintOptions(QWidget):
         label.setFont(self.font)
 
         # process and print btn
-        process_btn = QPushButton("Process and Print")
+        process_btn = QPushButton("Process")
         process_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        process_btn.setStyleSheet("background-color: #1fb141; border-radius: 0.5em; padding: 6px 12px")
+        process_btn.setStyleSheet("background-color: #1fb141; border-radius: 0.5em; padding: 6px 12px; color: white")
         process_btn.setFont(QFont("Poppins", 14, QFont.Weight.Medium))
         process_btn_pxmp = QPixmap(resource_path("assets/icons/print_icon.png"))
         process_btn_icon = QIcon(process_btn_pxmp)
